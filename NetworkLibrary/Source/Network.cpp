@@ -1,7 +1,7 @@
 #include "Network.h"
-#include "Platform.h"
+#include "Socket.h"
 
 void network(void)
 {
-	platform();
+
 }
