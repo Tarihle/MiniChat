@@ -9,14 +9,12 @@ constexpr BYTE Exit_WSACleanup = 1'02;
 constexpr BYTE minorVersion = 2;
 constexpr BYTE majorVersion = 2;
 
+#define PORT "6698"
+#define IP "localhost"
+
 namespace Net
 {
 	Network* Network::m_Instance = nullptr;
-
-	Network::Network()
-	{
-
-	}
 
 	Network* Net::Network::GetInstance()
 	{
@@ -53,6 +51,43 @@ namespace Net
 	}
 
 	Network::~Network()
+	{
+
+	}
+
+	//////////////////////////////////////////////////
+
+	int Socket::NewSocket()
+	{
+		struct addrinfo hints;
+		struct addrinfo* list;
+		struct addrinfo* iter;
+		int status;
+		int newSocket;
+
+		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
+		hints.ai_family = AF_UNSPEC;    /* AF_INET or AF_INET6 to force version */
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = AI_PASSIVE;
+		hints.ai_protocol = IPPROTO_TCP;
+
+		status = getaddrinfo(IP, PORT, &hints, &list);
+		if (status != 0)    /* getaddrinfo return 0 on success */
+		{
+			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+			return 2;
+		}
+
+		SOCKET newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
+		if (INVALID_SOCKET == newSocket)
+		{
+			//reportWindowsError(TEXT("socket"), WSAGetLastError());
+		}
+
+		return newSocket;
+	}
+
+	Socket::~Socket()
 	{
 
 	}

@@ -34,8 +34,6 @@ int main()
         return Exit_WSAStartup;
     }
 
-    Network* myNetwork = new Network();
-
     struct addrinfo hints, *list, *iter;
     int status;
     char ipstr[INET6_ADDRSTRLEN];   /* IP string */

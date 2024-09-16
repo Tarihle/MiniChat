@@ -1,12 +1,16 @@
 #pragma once
 
+#include <vector>
+
+#include "Network.h"
+
 namespace Net
 {
 	class Network
 	{
 	public:
-		/// <summary>Default Constructor.</summary>
-		Network();
+		/// <summary>Non-parameterized constructor.</summary>
+		Network() = default;
 
 		//////////////////////////////////////////////////
 		
@@ -22,5 +26,6 @@ namespace Net
 		~Network();
 	private:
 		static Network* m_Instance;
+		//std::vector<Socket>
 	};
 }
