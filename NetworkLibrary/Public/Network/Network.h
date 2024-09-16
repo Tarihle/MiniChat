@@ -1,3 +1,6 @@
 #pragma once
 
-void network(void);
+namespace Net
+{
+	class Network;
+}

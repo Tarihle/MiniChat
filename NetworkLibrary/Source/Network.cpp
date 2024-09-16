@@ -1,7 +1,4 @@
 #include "Network.h"
-#include "Socket.h"
+#include "PrivateNetwork.h"
 
-void network(void)
-{
 
-}
