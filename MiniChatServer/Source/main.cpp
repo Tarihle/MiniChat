@@ -1,5 +1,5 @@
 ///Server
-//#include <Network/Network.h>
+#include <Network/Network.h>
 //
 //int main()
 //{
@@ -20,6 +20,8 @@ constexpr BYTE Exit_WSACleanup = 1'02;
 constexpr BYTE minorVersion = 2;
 constexpr BYTE majorVersion = 2;
 
+using namespace Net;
+
 int main()
 {
     ///* WSA Startup */
@@ -31,6 +33,8 @@ int main()
         //reportWindowsError(TEXT("WSAStartup"), result);
         return Exit_WSAStartup;
     }
+
+    Network* myNetwork = new Network();
 
     struct addrinfo hints, *list, *iter;
     int status;
