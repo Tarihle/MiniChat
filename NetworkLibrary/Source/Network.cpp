@@ -1,10 +1,8 @@
 #include "PrivateNetwork.h"
 #include "Network.h"
 
-#include <WS2tcpip.h>
-
-constexpr BYTE Exit_WSAStartup = 1'01;
-constexpr BYTE Exit_WSACleanup = 1'02;
+constexpr short Exit_WSAStartup = 1'01;
+constexpr short Exit_WSACleanup = 1'02;
 
 constexpr BYTE minorVersion = 2;
 constexpr BYTE majorVersion = 2;
@@ -16,54 +14,69 @@ namespace Net
 {
 	Network* Network::m_Instance = nullptr;
 
-	Network* Net::Network::GetInstance()
-	{
-		if (nullptr == m_Instance)
-		{
-			return new Network();
-		}
-
-		return m_Instance;
-	}
-
-	int Network::Startup()
+	Network::Network(short*& errorOutput)
 	{
 		///* WSA Startup */
 		WSADATA data;
 		int result = WSAStartup(MAKEWORD(majorVersion, minorVersion), &data);
 
-		if (result)
+		if (result) /* if result == 0, startup succeeded*/
 		{
 			//reportWindowsError(TEXT("WSAStartup"), result);
-			return Exit_WSAStartup;
+			*errorOutput = Exit_WSAStartup;
 		}
+
+		*errorOutput = 0;
 	}
 
-	int Network::Cleanup()
+	Network* Network::GetInstance(short*& errorOutput)
+	{
+		if (nullptr == m_Instance)
+		{
+			m_Instance = new Network(errorOutput);
+		}
+
+		return m_Instance;
+	}
+
+	std::vector<SOCKET>& Network::GetSockets()
+	{
+		return m_Sockets;
+	}
+
+	short Network::AddSocket(SOCKET& newSocket)
+	{
+		m_Sockets.push_back(newSocket);
+
+		return ++m_LastGivenID;
+
+	}
+
+	Network::~Network()
 	{
 		///* WSA Cleanup */
 		int result = WSACleanup();
 		if (SOCKET_ERROR == result)
 		{
 			//reportWindowsError(TEXT("WSACleanup"), WSAGetLastError());
-			return Exit_WSACleanup;
+			//return Exit_WSACleanup;
 		}
-	}
-
-	Network::~Network()
-	{
-
 	}
 
 	//////////////////////////////////////////////////
 
-	int Socket::NewSocket()
+	Socket::Socket(short*& errorOutput)
 	{
+		m_Network = Network::GetInstance(errorOutput);
+	}
+
+	short Socket::NewSocket()
+	{		
 		struct addrinfo hints;
 		struct addrinfo* list;
-		struct addrinfo* iter;
+		//struct addrinfo* iter;
 		int status;
-		int newSocket;
+		SOCKET newSocket;
 
 		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
 		hints.ai_family = AF_UNSPEC;    /* AF_INET or AF_INET6 to force version */
@@ -78,13 +91,80 @@ namespace Net
 			return 2;
 		}
 
-		SOCKET newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
+		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
 		if (INVALID_SOCKET == newSocket)
 		{
 			//reportWindowsError(TEXT("socket"), WSAGetLastError());
 		}
 
-		return newSocket;
+		freeaddrinfo(list); /* free the linked list */
+
+		m_ID = ((Network*)m_Network)->AddSocket(newSocket);
+
+		return m_ID;
+	}
+
+	short Socket::NewSocketBind()
+	{
+		struct addrinfo hints;
+		struct addrinfo* list;
+		//struct addrinfo* iter;
+		int status;
+		SOCKET newSocket;
+
+		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
+		hints.ai_family = AF_UNSPEC;    /* AF_INET or AF_INET6 to force version */
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = AI_PASSIVE;
+		hints.ai_protocol = IPPROTO_TCP;
+
+		status = getaddrinfo(IP, PORT, &hints, &list);
+		if (status != 0)    /* getaddrinfo return 0 on success */
+		{
+			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+			return 2;
+		}
+
+		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
+		if (INVALID_SOCKET == newSocket)
+		{
+			//reportWindowsError(TEXT("socket"), WSAGetLastError());
+		}
+
+		m_ID = ((Network*)m_Network)->AddSocket(newSocket);
+
+		if (SOCKET_ERROR == bind(((Network*)m_Network)->GetSockets()[m_ID], list->ai_addr, (int)list->ai_addrlen))
+		{
+			//reportWindowsError(TEXT("bind"), WSAGetLastError());
+			printf("aïe aïe aïe");
+		}
+
+		freeaddrinfo(list); /* free the linked list */
+
+		return m_ID;
+	}
+
+	void Socket::Listening()
+	{
+		listen(((Network*)m_Network)->GetSockets()[m_ID], 5);
+	}
+
+	void Socket::Accepting()
+	{
+		struct sockaddr_storage their_addr;
+		socklen_t addr_size;
+		SOCKET new_fd;
+
+		addr_size = sizeof their_addr;
+		new_fd = accept(((Network*)m_Network)->GetSockets()[m_ID], (struct sockaddr*)&their_addr, &addr_size);
+		if (INVALID_SOCKET != new_fd)
+		{
+			printf(TEXT("yay"));
+		}
+		else
+		{
+			printf(TEXT("nay"));
+		}
 	}
 
 	Socket::~Socket()

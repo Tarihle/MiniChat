@@ -44,7 +44,8 @@ int main()
     hints.ai_flags = AI_PASSIVE;
     hints.ai_protocol = IPPROTO_TCP;
 
-    status = getaddrinfo("10.5.5.108", "8080", &hints, &list);
+    //status = getaddrinfo("10.5.5.108", "8080", &hints, &list);
+    status = getaddrinfo("localhost", "6667", &hints, &list);
     if (status != 0)    /* getaddrinfo return 0 on success */
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
@@ -60,8 +61,8 @@ int main()
     connect(sckt, list->ai_addr, (int)list->ai_addrlen);
     _tprintf(TEXT("Connecting to kevin\n"));
 
-    char buf[1000001];
-    int charCount = recv(sckt, buf, 1000001, 0);
+    char buf[100];
+    int charCount = recv(sckt, buf, 100, 0);
     buf[charCount-1] = '\0';
 
     _tprintf(TEXT("%s\n"), buf);

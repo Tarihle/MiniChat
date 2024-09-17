@@ -6,11 +6,15 @@ namespace Net
 	{
 	public:
 		/// <summary>Non-parameterized constructor.</summary>
-		Socket() = default;
+		Socket() = delete;
+		Socket(short*& errorOutput);
 
 		//////////////////////////////////////////////////
 
-		int NewSocket();
+		short NewSocket();
+		short NewSocketBind();
+		void Listening();
+		void Accepting();
 		 
 		//////////////////////////////////////////////////
 
@@ -18,6 +22,7 @@ namespace Net
 		~Socket();
 
 	private:
-		
+		void* m_Network = nullptr;
+		short m_ID = -1;
 	};
 }
