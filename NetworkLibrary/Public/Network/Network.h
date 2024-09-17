@@ -11,8 +11,8 @@ namespace Net
 
 		//////////////////////////////////////////////////
 
-		short NewSocket();
-		short NewSocketBind();
+		short NewSocket(short optionalPrint = 0);
+		short NewSocketBind(short optionalPrint = 0);
 		void Listening();
 		void Accepting();
 		 

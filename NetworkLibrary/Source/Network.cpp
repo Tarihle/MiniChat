@@ -70,11 +70,11 @@ namespace Net
 		m_Network = Network::GetInstance(errorOutput);
 	}
 
-	short Socket::NewSocket()
+	short Socket::NewSocket(short optionalPrint)
 	{		
 		struct addrinfo hints;
 		struct addrinfo* list;
-		//struct addrinfo* iter;
+		struct addrinfo* iter;
 		int status;
 		SOCKET newSocket;
 
@@ -89,6 +89,37 @@ namespace Net
 		{
 			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
 			return 2;
+		}
+
+		if (optionalPrint)
+		{
+			printf(TEXT("IP addresses for localhost:\n\n"));
+			for (iter = list; iter != nullptr; iter = iter->ai_next)
+			{
+				void* addr;
+				const char* ipver;
+
+				// get the pointer to the address itself,
+				// different fields in IPv4 and IPv6:
+				if (iter->ai_family == AF_INET)
+				{ // IPv4
+					struct sockaddr_in* ipv4 = (struct sockaddr_in*)iter->ai_addr;
+					addr = &(ipv4->sin_addr);
+					ipver = "IPv4";
+				}
+				else
+				{ // IPv6
+					struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)iter->ai_addr;
+					addr = &(ipv6->sin6_addr);
+					ipver = "IPv6";
+				}
+
+				char ipstr[INET6_ADDRSTRLEN];   /* IP string */
+
+				// convert the IP to a string and print it:
+				inet_ntop(iter->ai_family, addr, ipstr, sizeof ipstr);
+				printf(TEXT("  %s: %s\n"), ipver, ipstr);
+			}
 		}
 
 		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
@@ -104,11 +135,10 @@ namespace Net
 		return m_ID;
 	}
 
-	short Socket::NewSocketBind()
+	short Socket::NewSocketBind(short optionalPrint)
 	{
 		struct addrinfo hints;
 		struct addrinfo* list;
-		//struct addrinfo* iter;
 		int status;
 		SOCKET newSocket;
 
@@ -123,6 +153,38 @@ namespace Net
 		{
 			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
 			return 2;
+		}
+
+		if (optionalPrint)
+		{
+			struct addrinfo* iter;
+			printf(TEXT("IP addresses for localhost:\n\n"));
+			for (iter = list; iter != nullptr; iter = iter->ai_next)
+			{
+				void* addr;
+				const char* ipver;
+
+				// get the pointer to the address itself,
+				// different fields in IPv4 and IPv6:
+				if (iter->ai_family == AF_INET)
+				{ // IPv4
+					struct sockaddr_in* ipv4 = (struct sockaddr_in*)iter->ai_addr;
+					addr = &(ipv4->sin_addr);
+					ipver = "IPv4";
+				}
+				else
+				{ // IPv6
+					struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)iter->ai_addr;
+					addr = &(ipv6->sin6_addr);
+					ipver = "IPv6";
+				}
+
+				char ipstr[INET6_ADDRSTRLEN];   /* IP string */
+
+				// convert the IP to a string and print it:
+				inet_ntop(iter->ai_family, addr, ipstr, sizeof ipstr);
+				printf(TEXT("  %s: %s\n"), ipver, ipstr);
+			}
 		}
 
 		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
