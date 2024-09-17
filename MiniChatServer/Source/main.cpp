@@ -11,7 +11,8 @@ int main()
     server.NewSocketBind("localhost", "6698", 1); /* IANA says port 6698 is unassigned */
 
     server.Listening();
-    server.Accepting();
+    //server.Accepting();
+    server.PollLoop();
 
     return 0;
 }
