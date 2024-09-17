@@ -7,8 +7,8 @@ constexpr short Exit_WSACleanup = 1'02;
 constexpr BYTE minorVersion = 2;
 constexpr BYTE majorVersion = 2;
 
-#define PORT "6698"
-#define IP "localhost"
+//#define PORT "6698"
+//#define IP "localhost"
 
 namespace Net
 {
@@ -70,7 +70,7 @@ namespace Net
 		m_Network = Network::GetInstance(errorOutput);
 	}
 
-	short Socket::NewSocket(short optionalPrint)
+	short Socket::NewSocket(const char* IPAddress, const char* port,short optionalPrint)
 	{		
 		struct addrinfo hints;
 		struct addrinfo* list;
@@ -84,7 +84,7 @@ namespace Net
 		hints.ai_flags = AI_PASSIVE;
 		hints.ai_protocol = IPPROTO_TCP;
 
-		status = getaddrinfo(IP, PORT, &hints, &list);
+		status = getaddrinfo(IPAddress, port, &hints, &list);
 		if (status != 0)    /* getaddrinfo return 0 on success */
 		{
 			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
@@ -135,7 +135,7 @@ namespace Net
 		return m_ID;
 	}
 
-	short Socket::NewSocketBind(short optionalPrint)
+	short Socket::NewSocketBind(const char* IPAddress, const char* port, short optionalPrint)
 	{
 		struct addrinfo hints;
 		struct addrinfo* list;
@@ -148,7 +148,7 @@ namespace Net
 		hints.ai_flags = AI_PASSIVE;
 		hints.ai_protocol = IPPROTO_TCP;
 
-		status = getaddrinfo(IP, PORT, &hints, &list);
+		status = getaddrinfo(IPAddress, port, &hints, &list);
 		if (status != 0)    /* getaddrinfo return 0 on success */
 		{
 			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
@@ -158,7 +158,7 @@ namespace Net
 		if (optionalPrint)
 		{
 			struct addrinfo* iter;
-			printf(TEXT("IP addresses for localhost:\n\n"));
+			printf(TEXT("IP addresses for %s:\n\n"), IPAddress);
 			for (iter = list; iter != nullptr; iter = iter->ai_next)
 			{
 				void* addr;
@@ -194,12 +194,81 @@ namespace Net
 		}
 
 		m_ID = ((Network*)m_Network)->AddSocket(newSocket);
+		printf("Server ID: %d\n", m_ID);
 
 		if (SOCKET_ERROR == bind(((Network*)m_Network)->GetSockets()[m_ID], list->ai_addr, (int)list->ai_addrlen))
 		{
 			//reportWindowsError(TEXT("bind"), WSAGetLastError());
 			printf("aïe aïe aïe");
 		}
+
+		freeaddrinfo(list); /* free the linked list */
+
+		return m_ID;
+	}
+
+	short Socket::NewSocketConnect(const char* IPAddress, const char* port, short optionalPrint)
+	{
+		struct addrinfo hints;
+		struct addrinfo* list;
+		int status;
+		SOCKET newSocket;
+
+		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
+		hints.ai_family = AF_UNSPEC;    /* AF_INET or AF_INET6 to force version */
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = AI_PASSIVE;
+		hints.ai_protocol = IPPROTO_TCP;
+
+		status = getaddrinfo(IPAddress, port, &hints, &list);
+		if (status != 0)    /* getaddrinfo return 0 on success */
+		{
+			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+			return 2;
+		}
+
+		if (optionalPrint)
+		{
+			struct addrinfo* iter;
+			printf(TEXT("IP addresses for %s:\n\n"), IPAddress);
+			for (iter = list; iter != nullptr; iter = iter->ai_next)
+			{
+				void* addr;
+				const char* ipver;
+
+				// get the pointer to the address itself,
+				// different fields in IPv4 and IPv6:
+				if (iter->ai_family == AF_INET)
+				{ // IPv4
+					struct sockaddr_in* ipv4 = (struct sockaddr_in*)iter->ai_addr;
+					addr = &(ipv4->sin_addr);
+					ipver = "IPv4";
+				}
+				else
+				{ // IPv6
+					struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)iter->ai_addr;
+					addr = &(ipv6->sin6_addr);
+					ipver = "IPv6";
+				}
+
+				char ipstr[INET6_ADDRSTRLEN];   /* IP string */
+
+				// convert the IP to a string and print it:
+				inet_ntop(iter->ai_family, addr, ipstr, sizeof ipstr);
+				printf(TEXT("  %s: %s\n"), ipver, ipstr);
+			}
+		}
+
+		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
+		if (INVALID_SOCKET == newSocket)
+		{
+			//reportWindowsError(TEXT("socket"), WSAGetLastError());
+		}
+
+		m_ID = ((Network*)m_Network)->AddSocket(newSocket);
+		printf("Client ID: %d\n", m_ID);
+
+		connect(((Network*)m_Network)->GetSockets()[m_ID], list->ai_addr, (int)list->ai_addrlen);
 
 		freeaddrinfo(list); /* free the linked list */
 

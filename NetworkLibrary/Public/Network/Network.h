@@ -11,8 +11,9 @@ namespace Net
 
 		//////////////////////////////////////////////////
 
-		short NewSocket(short optionalPrint = 0);
-		short NewSocketBind(short optionalPrint = 0);
+		short NewSocket(const char* IPAddress, const char* port, short optionalPrint = 0);
+		short NewSocketBind(const char* IPAddress, const char* port, short optionalPrint = 0);
+		short NewSocketConnect(const char* IPAddress, const char* port, short optionalPrint = 0);
 		void Listening();
 		void Accepting();
 		 
