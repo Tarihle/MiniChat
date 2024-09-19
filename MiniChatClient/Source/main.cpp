@@ -11,6 +11,8 @@ int main()
 
     printf("Connecting to 10.5.5.106\n");
 
+    client.Close();
+
     //char buf[100];
     //int charCount = recv(sckt, buf, 100, 0);
     //buf[charCount-1] = '\0';

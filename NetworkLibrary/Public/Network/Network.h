@@ -17,6 +17,7 @@ namespace Net
 		void* GetAddr(struct sockaddr* SocketAddress);
 		void Listening();
 		void Accepting();
+		void Close();
 		void PollLoop();
 		 
 		//////////////////////////////////////////////////

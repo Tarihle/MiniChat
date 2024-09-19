@@ -254,9 +254,19 @@ namespace Net
 		}
 	}
 
+	void Socket::Close()
+	{
+		//send(((Network*)m_Network)->GetSockets()[m_ID], "", 0, 0);
+		char msg[7] = "Ye boi";
+		int len, bytes_sent;
+
+		len = (int)strlen(msg) + 1;
+		bytes_sent = send(((Network*)m_Network)->GetSockets()[m_ID], msg, len, 0);
+	}
+
 	void Socket::PollLoop()
 	{
-		std::vector<pollfd> pfds = ((Network*)m_Network)->GetPollfds();
+		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 		SOCKET listener = ((Network*)m_Network)->GetListener();
 
 		struct sockaddr_storage remoteAddr; // Client address
@@ -268,6 +278,7 @@ namespace Net
 
 		for (;;) 
 		{
+			printf("Numbers of sockets check: %d\n", (int)pfds.size());
 			int poll_count = WSAPoll(&pfds[0], (ULONG)pfds.size(), -1);
 
 			if (SOCKET_ERROR == poll_count) 
