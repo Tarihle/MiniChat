@@ -258,12 +258,13 @@ namespace Net
 
 	void Socket::Close()
 	{
+		closesocket(((Network*)m_Network)->GetSockets()[m_ID]);
 		//send(((Network*)m_Network)->GetSockets()[m_ID], "", 0, 0);
-		char msg[7] = "Ye boi";
-		int len, bytes_sent;
+		//char msg[7] = "Ye boi";
+		//int len, bytes_sent;
 
-		len = (int)strlen(msg) + 1;
-		bytes_sent = send(((Network*)m_Network)->GetSockets()[m_ID], msg, len, 0);
+		//len = (int)strlen(msg) + 1;
+		//bytes_sent = send(((Network*)m_Network)->GetSockets()[m_ID], msg, len, 0);
 	}
 
 	void Socket::PollLoop()
@@ -354,6 +355,13 @@ namespace Net
 						}
 					} // END handle data from client
 				} // END got ready-to-read from poll()
+				else if (pfds[i].revents & POLLERR || pfds[i].revents & POLLHUP)
+				{
+					// Connection closed
+					printf("pollserver: socket %llu aborted connection\n", pfds[i].fd);
+
+					closesocket(pfds[i].fd); // Bye!
+				}
 			} // END looping through file descriptors
 		} // END for(;;)--and you thought it would never end!
 	}
