@@ -7,9 +7,9 @@ int main()
     short* error = new short(-1);
     Net::Socket client(error);
 
-    client.NewSocketConnect("localhost", "6698", 1); /* IANA says port 6698 is unassigned */
+    client.NewSocketConnect("10.5.5.106", "6698", 1); /* IANA says port 6698 is unassigned */
 
-    printf("Connecting to localhost\n");
+    printf("Connecting to 10.5.5.106\n");
 
     //char buf[100];
     //int charCount = recv(sckt, buf, 100, 0);
