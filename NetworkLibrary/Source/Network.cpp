@@ -1,4 +1,6 @@
 #include "PrivateNetwork.h"
+#include "ErrorHandling.hpp"
+
 #include "Network.h"
 
 constexpr short Exit_WSAStartup = 1'01;
@@ -83,7 +85,7 @@ namespace Net
 		int result = WSACleanup();
 		if (SOCKET_ERROR == result)
 		{
-			//reportWindowsError(TEXT("WSACleanup"), WSAGetLastError());
+			reportWindowsError(TEXT("WSACleanup"), WSAGetLastError());
 			//return Exit_WSACleanup;
 		}
 	}
@@ -208,7 +210,7 @@ namespace Net
 		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
 		if (INVALID_SOCKET == newSocket)
 		{
-			//reportWindowsError(TEXT("socket"), WSAGetLastError());
+			reportWindowsError(TEXT("socket"), WSAGetLastError());
 		}
 
 		m_ID = ((Network*)m_Network)->AddSocket(newSocket);
@@ -250,7 +252,7 @@ namespace Net
 		}
 		else
 		{
-			//reportWindowsError(TEXT("accept"), WSAGetLastError());
+			reportWindowsError(TEXT("accept"), WSAGetLastError());
 		}
 	}
 
@@ -301,7 +303,7 @@ namespace Net
 
 						if (INVALID_SOCKET == newFd) 
 						{
-							//reportWindowsError(TEXT("accept"), WSAGetLastError());
+							reportWindowsError(TEXT("accept"), WSAGetLastError());
 						}
 						else 
 						{
@@ -330,7 +332,7 @@ namespace Net
 						}
 						else if (recvBytes < 0)
 						{
-							//reportWindowsError(TEXT("recv"), WSAGetLastError());
+							reportWindowsError(TEXT("recv"), WSAGetLastError());
 						}
 						else 
 						{
