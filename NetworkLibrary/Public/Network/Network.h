@@ -18,6 +18,7 @@ namespace Net
 		void Listening();
 		void Accepting();
 		void Close();
+		void Send(const char* buf, int len);
 		void PollLoop();
 		 
 		//////////////////////////////////////////////////

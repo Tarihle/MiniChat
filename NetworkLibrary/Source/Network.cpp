@@ -267,6 +267,12 @@ namespace Net
 		//bytes_sent = send(((Network*)m_Network)->GetSockets()[m_ID], msg, len, 0);
 	}
 
+	void Socket::Send(const char* buf, int len)
+	{
+		printf("%s\n", buf);
+		send(((Network*)m_Network)->GetSockets()[m_ID], buf, len, 0);
+	}
+
 	void Socket::PollLoop()
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
@@ -342,6 +348,7 @@ namespace Net
 							{
 								// Send to everyone!
 								SOCKET destination = pfds[j].fd;
+								printf("%s\n", buf);
 
 								// Except the listener and ourselves
 								if (destination != listener && destination != sender) 
@@ -361,6 +368,7 @@ namespace Net
 					printf("pollserver: socket %llu aborted connection\n", pfds[i].fd);
 
 					closesocket(pfds[i].fd); // Bye!
+					pfds.erase(pfds.begin() + i);
 				}
 			} // END looping through file descriptors
 		} // END for(;;)--and you thought it would never end!
