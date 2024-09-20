@@ -53,7 +53,7 @@ VOID KeyEventProc(KEY_EVENT_RECORD ker, Net::Socket client)
         bufidx++;
         //wprintf(wcharbuf);
         client.Send((char*)charbuf, bufidx);
-        bufidx = 0;
+        bufidx = 8;
     }
     else
     {
@@ -114,12 +114,18 @@ int main()
     short* error = new short(-1);
     Net::Socket client(error);
 
-    client.NewSocketConnect("10.5.5.106", "6698", 1); /* IANA says port 6698 is unassigned */
+    client.NewSocketConnect("10.5.5.105", "27015", 1); /* IANA says port 6698 is unassigned */
 
     printf("Connecting to 10.5.5.106\n");
 
     DWORD cNumRead, fdwMode, i;
+    CHAR name[8] = {'L', 'o', 'u', 'i', 's', ' ', '>', ' '};
     INPUT_RECORD irInBuf[128];
+    for (int ind = 0; ind < 8; ind++)
+    {
+        charbuf[ind] = name[ind];
+    }
+    bufidx = 8;
 
     // Get the standard input handle.
 
