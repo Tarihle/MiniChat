@@ -290,7 +290,6 @@ namespace Net
 
 		for (;;) 
 		{
-			printf("Numbers of sockets check: %d\n", (int)pfds.size());
 			int poll_count = WSAPoll(&pfds[0], (ULONG)pfds.size(), -1);
 
 			if (SOCKET_ERROR == poll_count) 
@@ -322,12 +321,14 @@ namespace Net
 							printf("pollserver: new connection from %s on socket %llu\n",
 								inet_ntop(remoteAddr.ss_family, GetAddr((struct sockaddr*)&remoteAddr), remoteIP, INET6_ADDRSTRLEN), 
 								newFd);
+							printf("Numbers of sockets check: %d\n", (int)pfds.size());
 						}
 					}
 					else 
 					{
 						// If not the listener, we're just a regular client
 						int recvBytes = recv(pfds[i].fd, buf, sizeof buf, 0);
+						buf[recvBytes - 1] = '\0';
 
 						SOCKET sender = pfds[i].fd;
 
@@ -346,12 +347,13 @@ namespace Net
 						}
 						else 
 						{
+							printf("%s\n", buf);
+
 							// We got some good data from a client
 							for (int j = 0; j < pfds.size(); j++) 
 							{
 								// Send to everyone!
 								SOCKET destination = pfds[j].fd;
-								printf("%s\n", buf);
 
 								// Except the listener and ourselves
 								if (destination != listener && destination != sender) 
@@ -404,6 +406,8 @@ namespace Net
 				printf("%s\n", buf);
 			}
 		//}
+
+			WSAResetEvent(m_Handle);
 	}
 
 	HANDLE Socket::GetHandle()

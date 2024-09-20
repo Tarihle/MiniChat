@@ -118,28 +118,8 @@ int main()
 
     printf("Connecting to 10.5.5.106\n");
 
-    //client.Close();
-
-    //char buf[100];
-    //int charCount = recv(sckt, buf, 100, 0);
-    //buf[charCount-1] = '\0';
-
-    //_tprintf(TEXT("%s\n"), buf);
-
-    //std::ofstream chatLogs;
-    //chatLogs.open("ChatLogs.txt");
-    //chatLogs << buf;
-    //chatLogs.close();
-
-    //char msg[7] = "Ye boi";
-    //int len, bytes_sent;
-
-    //len = (int)strlen(msg) + 1;
-    //bytes_sent = send(sckt, msg, len, 0);
-
     DWORD cNumRead, fdwMode, i;
     INPUT_RECORD irInBuf[128];
-    int counter = 0;
 
     // Get the standard input handle.
 
@@ -162,7 +142,7 @@ int main()
 
     // Loop to read and handle the next 100 input events.
 
-    while (counter++ <= 100)
+    while (true)
     {
         DWORD object = WaitForMultipleObjects(2, eventHandles, false, INFINITE);
 
@@ -171,50 +151,50 @@ int main()
         switch (object)
         {
         case WAIT_OBJECT_0:
-            printf("Console\n");
-            break;
+            if (!ReadConsoleInput(
+                hStdin,      // input buffer handle
+                irInBuf,     // buffer to read into
+                128,         // size of read buffer
+                &cNumRead)) // number of records read
+                ErrorExit((LPSTR)"ReadConsoleInput");
+
+            // Dispatch the events to the appropriate handler.
+
+            for (i = 0; i < cNumRead; i++)
+            {
+                switch (irInBuf[i].EventType)
+                {
+                case KEY_EVENT: // keyboard input
+                    KeyEventProc(irInBuf[i].Event.KeyEvent, client);
+                    break;
+
+                case MOUSE_EVENT: // mouse input
+                    MouseEventProc(irInBuf[i].Event.MouseEvent);
+                    break;
+
+                case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing
+                    ResizeEventProc(irInBuf[i].Event.WindowBufferSizeEvent);
+                    break;
+
+                case FOCUS_EVENT:  // disregard focus events
+
+                case MENU_EVENT:   // disregard menu events
+                    break;
+
+                default:
+                    ErrorExit((LPSTR)"Unknown event type");
+                    break;
+                }
+            }            break;
         case WAIT_OBJECT_0 + 1:
-            printf("Socket\n");
+            //printf("Socket\n");
+            client.PollClient();
             break;
         default:
-            continue;
+            break;
         }
 
-        if (!ReadConsoleInput(
-            hStdin,      // input buffer handle
-            irInBuf,     // buffer to read into
-            128,         // size of read buffer
-            &cNumRead)) // number of records read
-            ErrorExit((LPSTR)"ReadConsoleInput");
 
-        // Dispatch the events to the appropriate handler.
-
-        for (i = 0; i < cNumRead; i++)
-        {
-            switch (irInBuf[i].EventType)
-            {
-            case KEY_EVENT: // keyboard input
-                KeyEventProc(irInBuf[i].Event.KeyEvent, client);
-                break;
-
-            case MOUSE_EVENT: // mouse input
-                MouseEventProc(irInBuf[i].Event.MouseEvent);
-                break;
-
-            case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing
-                ResizeEventProc(irInBuf[i].Event.WindowBufferSizeEvent);
-                break;
-
-            case FOCUS_EVENT:  // disregard focus events
-
-            case MENU_EVENT:   // disregard menu events
-                break;
-
-            default:
-                ErrorExit((LPSTR)"Unknown event type");
-                break;
-            }
-        }
     }
 
     // Restore input mode on exit.
