@@ -219,6 +219,9 @@ namespace Net
 
 		connect(((Network*)m_Network)->GetSockets()[m_ID], list->ai_addr, (int)list->ai_addrlen);
 
+		m_Handle = WSACreateEvent();
+		WSAEventSelect(((Network*)m_Network)->GetSockets()[m_ID], m_Handle, FD_READ);
+
 		freeaddrinfo(list); /* free the linked list */
 
 		return m_ID;
@@ -258,7 +261,7 @@ namespace Net
 
 	void Socket::Close()
 	{
-		closesocket(((Network*)m_Network)->GetSockets()[m_ID]);
+		shutdown(((Network*)m_Network)->GetSockets()[m_ID], SD_BOTH);
 		//send(((Network*)m_Network)->GetSockets()[m_ID], "", 0, 0);
 		//char msg[7] = "Ye boi";
 		//int len, bytes_sent;
@@ -292,7 +295,7 @@ namespace Net
 
 			if (SOCKET_ERROR == poll_count) 
 			{
-				//reportWindowsError(TEXT("poll"), WSAGetLastError());
+				reportWindowsError(TEXT("poll"), WSAGetLastError());
 				exit(1);
 			}
 
@@ -355,7 +358,7 @@ namespace Net
 								{
 									if (SOCKET_ERROR == send(destination, buf, recvBytes, 0)) 
 									{
-										//reportWindowsError(TEXT("send"), WSAGetLastError());
+										reportWindowsError(TEXT("send"), WSAGetLastError());
 									}
 								}
 							}
@@ -372,6 +375,40 @@ namespace Net
 				}
 			} // END looping through file descriptors
 		} // END for(;;)--and you thought it would never end!
+	}
+
+	void Socket::PollClient()
+	{
+		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
+		char buf[256];    // Buffer for client data
+
+		//int poll_count = WSAPoll(&pfds[0], (ULONG)pfds.size(), 10);
+
+		//if (SOCKET_ERROR == poll_count)
+		//{
+		//	reportWindowsError(TEXT("poll"), WSAGetLastError());
+		//	exit(1);
+		//}
+
+		//if (pfds[0].revents & POLLIN)
+		//{
+			// If not the listener, we're just a regular client
+			int recvBytes = recv(pfds[0].fd, buf, sizeof buf, 0);
+
+			if (recvBytes < 0)
+			{
+				reportWindowsError(TEXT("recv"), WSAGetLastError());
+			}
+			else
+			{
+				printf("%s\n", buf);
+			}
+		//}
+	}
+
+	HANDLE Socket::GetHandle()
+	{
+		return m_Handle;
 	}
 
 	Socket::~Socket()

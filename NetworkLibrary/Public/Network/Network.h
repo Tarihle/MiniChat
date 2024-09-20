@@ -1,5 +1,10 @@
 #pragma once
 
+#ifndef _WINDOWS_
+#define WIN32_LEAN_AND_MEAN	/* No need for every windows header */
+#include <Windows.h>
+#endif
+
 namespace Net
 {
 	class Socket
@@ -20,6 +25,8 @@ namespace Net
 		void Close();
 		void Send(const char* buf, int len);
 		void PollLoop();
+		void PollClient();
+		HANDLE GetHandle();
 		 
 		//////////////////////////////////////////////////
 
@@ -33,5 +40,6 @@ namespace Net
 
 		void* m_Network = nullptr;
 		short m_ID = -1;
+		HANDLE m_Handle = nullptr;
 	};
 }

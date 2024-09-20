@@ -158,11 +158,27 @@ int main()
     if (!SetConsoleMode(hStdin, fdwMode))
         ErrorExit((LPSTR)"SetConsoleMode");
 
+    HANDLE eventHandles[2] = { hStdin, client.GetHandle() };
+
     // Loop to read and handle the next 100 input events.
 
     while (counter++ <= 100)
     {
+        DWORD object = WaitForMultipleObjects(2, eventHandles, false, INFINITE);
+
         // Wait for the events.
+        //client.PollClient();
+        switch (object)
+        {
+        case WAIT_OBJECT_0:
+            printf("Console\n");
+            break;
+        case WAIT_OBJECT_0 + 1:
+            printf("Socket\n");
+            break;
+        default:
+            continue;
+        }
 
         if (!ReadConsoleInput(
             hStdin,      // input buffer handle
