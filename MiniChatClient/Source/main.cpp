@@ -53,10 +53,6 @@ VOID KeyEventProc(KEY_EVENT_RECORD ker, Chat::Client& client)
         client.SendMsg((char*)charbuf, bufidx);
         bufidx = 8;
     }
-    else
-    {
-        //client.Close();
-    }
 }
 
 VOID MouseEventProc(MOUSE_EVENT_RECORD mer)

@@ -346,6 +346,7 @@ namespace Net
 		char buf[256];    // Buffer for client data
 
 		int recvBytes = recv(pfds[0].fd, buf, sizeof buf, 0);
+		buf[recvBytes - 1] = '\0';
 
 		if (recvBytes < 0)
 		{
