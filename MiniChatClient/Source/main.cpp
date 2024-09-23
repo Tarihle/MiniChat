@@ -194,7 +194,7 @@ int main()
             }            break;
         case WAIT_OBJECT_0 + 1:
             //printf("Socket\n");
-            client.PollClient();
+            client.RecvClient();
             break;
         default:
             break;

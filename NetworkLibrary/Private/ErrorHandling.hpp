@@ -21,12 +21,6 @@
 #include <fcntl.h>	/* needed for setmode */
 #endif //!UNICODE
 
-//constexpr BYTE Exit_WSAStartup = 1'01;
-//constexpr BYTE Exit_WSACleanup = 1'02;
-//
-//constexpr BYTE minorVersion = 2;
-//constexpr BYTE majorVersion = 2;
-
 void consolePrint(LPCTSTR format, ...)
 {
 	va_list args;

@@ -16,9 +16,9 @@ namespace Net
 
 		//////////////////////////////////////////////////
 
-		short NewSocket(const char* IPAddress, const char* port, short optionalPrint = 0);
-		short NewSocketBind(const char* IPAddress, const char* port, short optionalPrint = 0);
-		short NewSocketConnect(const char* IPAddress, const char* port, short optionalPrint = 0);
+		void NewSocket(const char* IPAddress, const char* port, short optionalPrint = 0);
+		void NewSocketBind(const char* IPAddress, const char* port, short optionalPrint = 0);
+		void NewSocketConnect(const char* IPAddress, const char* port, short optionalPrint = 0);
 		void* GetAddr(struct sockaddr* SocketAddress);
 		void Listening();
 		void Accepting();
@@ -39,7 +39,6 @@ namespace Net
 		//////////////////////////////////////////////////
 
 		void* m_Network = nullptr;
-		short m_ID = -1;
 		HANDLE m_Handle = nullptr;
 	};
 }

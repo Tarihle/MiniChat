@@ -41,29 +41,6 @@ namespace Net
 		return m_Instance;
 	}
 
-	std::vector<SOCKET>& Network::GetSockets()
-	{
-		return m_Sockets;
-	}
-
-	short Network::AddSocket(SOCKET& newSocket)
-	{
-		m_Sockets.push_back(newSocket);
-
-		return ++m_LastGivenID;
-
-	}
-
-	SOCKET& Network::GetListener()
-	{
-		return m_Listener;
-	}
-
-	void Network::SetListener(SOCKET& newListener)
-	{
-		m_Listener = newListener;
-	}
-
 	std::vector<pollfd>& Network::GetPollfds()
 	{
 		return m_Pollfds;
@@ -97,7 +74,7 @@ namespace Net
 		m_Network = Network::GetInstance(errorOutput);
 	}
 
-	short Socket::NewSocket(const char* IPAddress, const char* port,short optionalPrint)
+	void Socket::NewSocket(const char* IPAddress, const char* port,short optionalPrint)
 	{		
 		struct addrinfo hints;
 		struct addrinfo* list;
@@ -113,93 +90,9 @@ namespace Net
 		status = getaddrinfo(IPAddress, port, &hints, &list);
 		if (status != 0)    /* getaddrinfo return 0 on success */
 		{
-			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-			return 2;
-		}
-
-		if (optionalPrint)
-		{
-			PrintSocketAddr(list);
-		}
-
-		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
-		if (INVALID_SOCKET == newSocket)
-		{
-			//reportWindowsError(TEXT("socket"), WSAGetLastError());
-		}
-
-		freeaddrinfo(list); /* free the linked list */
-
-		m_ID = ((Network*)m_Network)->AddSocket(newSocket);
-
-		return m_ID;
-	}
-
-	short Socket::NewSocketBind(const char* IPAddress, const char* port, short optionalPrint)
-	{
-		struct addrinfo hints;
-		struct addrinfo* list;
-		int status;
-		SOCKET newSocket;
-
-		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
-		hints.ai_family = AF_UNSPEC;    /* AF_INET or AF_INET6 to force version */
-		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_flags = AI_PASSIVE;
-		hints.ai_protocol = IPPROTO_TCP;
-
-		status = getaddrinfo(IPAddress, port, &hints, &list);
-		if (status != 0)    /* getaddrinfo return 0 on success */
-		{
-			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-			return 2;
-		}
-
-		if (optionalPrint)
-		{
-			PrintSocketAddr(list);
-		}
-
-		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
-		if (INVALID_SOCKET == newSocket)
-		{
-			//reportWindowsError(TEXT("socket"), WSAGetLastError());
-		}
-
-		m_ID = ((Network*)m_Network)->AddSocket(newSocket);
-		((Network*)m_Network)->SetListener(newSocket);
-		printf("Server ID: %d\n", m_ID);
-		((Network*)m_Network)->AddPollfd(newSocket);
-
-		if (SOCKET_ERROR == bind(((Network*)m_Network)->GetSockets()[m_ID], list->ai_addr, (int)list->ai_addrlen))
-		{
-			//reportWindowsError(TEXT("bind"), WSAGetLastError());
-			printf("aïe aïe aïe");
-		}
-
-		freeaddrinfo(list); /* free the linked list */
-
-		return m_ID;
-	}
-
-	short Socket::NewSocketConnect(const char* IPAddress, const char* port, short optionalPrint)
-	{
-		struct addrinfo hints;
-		struct addrinfo* list;
-		int status;
-		SOCKET newSocket;
-
-		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
-		hints.ai_family = AF_UNSPEC;    /* AF_INET or AF_INET6 to force version */
-		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_flags = AI_PASSIVE;
-		hints.ai_protocol = IPPROTO_TCP;
-
-		status = getaddrinfo(IPAddress, port, &hints, &list);
-		if (status != 0)    /* getaddrinfo return 0 on success */
-		{
-			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-			return 2;
+			//fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+			reportWindowsError(TEXT("getaddrinfo"), WSAGetLastError())
+			//return 2;
 		}
 
 		if (optionalPrint)
@@ -213,18 +106,91 @@ namespace Net
 			reportWindowsError(TEXT("socket"), WSAGetLastError());
 		}
 
-		m_ID = ((Network*)m_Network)->AddSocket(newSocket);
-		printf("Client ID: %d\n", m_ID);
-		((Network*)m_Network)->AddPollfd(newSocket);
-
-		connect(((Network*)m_Network)->GetSockets()[m_ID], list->ai_addr, (int)list->ai_addrlen);
-
-		m_Handle = WSACreateEvent();
-		WSAEventSelect(((Network*)m_Network)->GetSockets()[m_ID], m_Handle, FD_READ);
-
 		freeaddrinfo(list); /* free the linked list */
 
-		return m_ID;
+		((Network*)m_Network)->AddPollfd(newSocket);
+	}
+
+	void Socket::NewSocketBind(const char* IPAddress, const char* port, short optionalPrint)
+	{
+		struct addrinfo hints;
+		struct addrinfo* list;
+		int status;
+		SOCKET newSocket;
+
+		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
+		hints.ai_family = AF_UNSPEC;    /* AF_INET or AF_INET6 to force version */
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = AI_PASSIVE;
+		hints.ai_protocol = IPPROTO_TCP;
+
+		status = getaddrinfo(IPAddress, port, &hints, &list);
+		if (status != 0)    /* getaddrinfo return 0 on success */
+		{
+			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+			//return 2;
+		}
+
+		if (optionalPrint)
+		{
+			PrintSocketAddr(list);
+		}
+
+		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
+		if (INVALID_SOCKET == newSocket)
+		{
+			reportWindowsError(TEXT("socket"), WSAGetLastError());
+		}
+
+		((Network*)m_Network)->AddPollfd(newSocket);
+
+		if (SOCKET_ERROR == bind(((Network*)m_Network)->GetPollfds()[0].fd, list->ai_addr, (int)list->ai_addrlen))
+		{
+			reportWindowsError(TEXT("bind"), WSAGetLastError());
+		}
+
+		freeaddrinfo(list); /* free the linked list */
+	}
+
+	void Socket::NewSocketConnect(const char* IPAddress, const char* port, short optionalPrint)
+	{
+		struct addrinfo hints;
+		struct addrinfo* list;
+		int status;
+		SOCKET newSocket;
+
+		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
+		hints.ai_family = AF_UNSPEC;    /* AF_INET or AF_INET6 to force version */
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = AI_PASSIVE;
+		hints.ai_protocol = IPPROTO_TCP;
+
+		status = getaddrinfo(IPAddress, port, &hints, &list);
+		if (status != 0)    /* getaddrinfo return 0 on success */
+		{
+			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+			//return 2;
+		}
+
+		if (optionalPrint)
+		{
+			PrintSocketAddr(list);
+		}
+
+		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
+		if (INVALID_SOCKET == newSocket)
+		{
+			reportWindowsError(TEXT("socket"), WSAGetLastError());
+		}
+
+		((Network*)m_Network)->AddPollfd(newSocket);
+
+		connect(((Network*)m_Network)->GetPollfds()[0].fd, list->ai_addr, (int)list->ai_addrlen);
+
+		m_Handle = WSACreateEvent();
+		WSAEventSelect(((Network*)m_Network)->GetPollfds()[0].fd, m_Handle, FD_READ);
+
+		freeaddrinfo(list); /* free the linked list */
 	}
 
 	void* Socket::GetAddr(sockaddr* SocketAddress)
@@ -238,7 +204,7 @@ namespace Net
 
 	void Socket::Listening()
 	{
-		listen(((Network*)m_Network)->GetSockets()[m_ID], 5);
+		listen(((Network*)m_Network)->GetPollfds()[0].fd, 5);
 	}
 
 	void Socket::Accepting()
@@ -248,7 +214,7 @@ namespace Net
 		SOCKET new_fd;
 
 		addr_size = sizeof their_addr;
-		new_fd = accept(((Network*)m_Network)->GetSockets()[m_ID], (struct sockaddr*)&their_addr, &addr_size);
+		new_fd = accept(((Network*)m_Network)->GetPollfds()[0].fd, (struct sockaddr*)&their_addr, &addr_size);
 		if (INVALID_SOCKET != new_fd)
 		{
 			printf("New client connected");
@@ -261,25 +227,19 @@ namespace Net
 
 	void Socket::Close()
 	{
-		shutdown(((Network*)m_Network)->GetSockets()[m_ID], SD_BOTH);
-		//send(((Network*)m_Network)->GetSockets()[m_ID], "", 0, 0);
-		//char msg[7] = "Ye boi";
-		//int len, bytes_sent;
-
-		//len = (int)strlen(msg) + 1;
-		//bytes_sent = send(((Network*)m_Network)->GetSockets()[m_ID], msg, len, 0);
+		shutdown(((Network*)m_Network)->GetPollfds()[0].fd, SD_BOTH);
 	}
 
 	void Socket::Send(const char* buf, int len)
 	{
 		printf("%s\n", buf);
-		send(((Network*)m_Network)->GetSockets()[m_ID], buf, len, 0);
+		send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len, 0);
 	}
 
 	void Socket::PollLoop()
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
-		SOCKET listener = ((Network*)m_Network)->GetListener();
+		SOCKET listener = ((Network*)m_Network)->GetPollfds()[0].fd;
 
 		struct sockaddr_storage remoteAddr; // Client address
 		char remoteIP[INET6_ADDRSTRLEN];
@@ -338,6 +298,7 @@ namespace Net
 							printf("pollserver: socket %llu hung up\n", sender);
 
 							closesocket(pfds[i].fd); // Bye!
+							pfds.erase(pfds.begin() + i);
 
 							//del_from_pfds(pfds, i, &pfds.size());
 						}
@@ -384,28 +345,16 @@ namespace Net
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 		char buf[256];    // Buffer for client data
 
-		//int poll_count = WSAPoll(&pfds[0], (ULONG)pfds.size(), 10);
+		int recvBytes = recv(pfds[0].fd, buf, sizeof buf, 0);
 
-		//if (SOCKET_ERROR == poll_count)
-		//{
-		//	reportWindowsError(TEXT("poll"), WSAGetLastError());
-		//	exit(1);
-		//}
-
-		//if (pfds[0].revents & POLLIN)
-		//{
-			// If not the listener, we're just a regular client
-			int recvBytes = recv(pfds[0].fd, buf, sizeof buf, 0);
-
-			if (recvBytes < 0)
-			{
-				reportWindowsError(TEXT("recv"), WSAGetLastError());
-			}
-			else
-			{
-				printf("%s\n", buf);
-			}
-		//}
+		if (recvBytes < 0)
+		{
+			reportWindowsError(TEXT("recv"), WSAGetLastError());
+		}
+		else
+		{
+			printf("%s\n", buf);
+		}
 
 			WSAResetEvent(m_Handle);
 	}
