@@ -25,7 +25,7 @@ namespace Net
 		void Close();
 		void Send(const char* buf, int len);
 		void PollLoop();
-		void PollClient();
+		void RecvClient();
 		HANDLE GetHandle();
 		 
 		//////////////////////////////////////////////////

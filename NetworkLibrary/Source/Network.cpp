@@ -379,7 +379,7 @@ namespace Net
 		} // END for(;;)--and you thought it would never end!
 	}
 
-	void Socket::PollClient()
+	void Socket::RecvClient()
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 		char buf[256];    // Buffer for client data
