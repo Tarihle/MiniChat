@@ -4,9 +4,6 @@
 
 ////////////////////////////////////////////////////////Readconsole
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 #ifdef _UNICODE
 #undef _UNICODE
 #endif
@@ -31,7 +28,7 @@ VOID ErrorExit(LPSTR lpszMessage)
     ExitProcess(0);
 }
 
-VOID KeyEventProc(KEY_EVENT_RECORD ker, Net::Socket& client)
+VOID KeyEventProc(KEY_EVENT_RECORD ker, Chat::Client& client)
 {
     //printf("Key event: ");
 
@@ -52,12 +49,13 @@ VOID KeyEventProc(KEY_EVENT_RECORD ker, Net::Socket& client)
         charbuf[bufidx] = '\0';
         bufidx++;
         //wprintf(wcharbuf);
-        client.Send((char*)charbuf, bufidx);
+        //client.Send((char*)charbuf, bufidx);
+        client.SendMsg((char*)charbuf, bufidx);
         bufidx = 8;
     }
     else
     {
-        client.Close();
+        //client.Close();
     }
 }
 
@@ -111,10 +109,12 @@ VOID ResizeEventProc(WINDOW_BUFFER_SIZE_RECORD wbsr)
 
 int main()
 {
-    short* error = new short(-1);
-    Net::Socket client(error);
+    //short* error = new short(-1);
+    //Net::Socket client(error);
+    Chat::Client client;
 
-    client.NewSocketConnect("10.5.5.105", "27015", 1); /* IANA says port 6698 is unassigned */
+    //client.NewSocketConnect("10.5.5.105", "27015", 1); /* IANA says port 6698 is unassigned */
+    client.Connect();
 
     printf("Connecting to 10.5.5.106\n");
 
@@ -144,7 +144,7 @@ int main()
     if (!SetConsoleMode(hStdin, fdwMode))
         ErrorExit((LPSTR)"SetConsoleMode");
 
-    HANDLE eventHandles[2] = { hStdin, client.GetHandle() };
+    HANDLE eventHandles[2] = { hStdin, client.GetSocketHandle() };
 
     // Loop to read and handle the next 100 input events.
 
@@ -194,7 +194,7 @@ int main()
             }            break;
         case WAIT_OBJECT_0 + 1:
             //printf("Socket\n");
-            client.RecvClient();
+            //client.RecvClient();
             break;
         default:
             break;

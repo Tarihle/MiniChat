@@ -19,14 +19,34 @@ namespace Chat
 		m_Socket->NewSocketConnect("10.5.5.105", "27015", 1);
 	}
 
-	void Client::GetSocketHandle()
+	HANDLE Client::GetSocketHandle()
+	{
+		if (nullptr == m_Socket)
+		{
+			return nullptr;
+		}
+
+		return m_Socket->GetHandle();
+	}
+
+	void Client::SendMsg(char* msg, short length)
 	{
 		if (nullptr == m_Socket)
 		{
 			return;
 		}
 
-		m_Socket->GetHandle();
+		m_Socket->Send(msg, length);
+	}
+
+	void Client::ReceiveMsg()
+	{
+		if (nullptr == m_Socket)
+		{
+			return;
+		}
+
+		m_Socket->RecvClient();
 	}
 
 	Client::~Client()

@@ -91,7 +91,7 @@ namespace Net
 		if (status != 0)    /* getaddrinfo return 0 on success */
 		{
 			//fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-			reportWindowsError(TEXT("getaddrinfo"), WSAGetLastError())
+			reportWindowsError(TEXT("getaddrinfo"), WSAGetLastError());
 			//return 2;
 		}
 
