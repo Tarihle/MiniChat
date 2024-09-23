@@ -1,0 +1,25 @@
+#pragma once
+#include <Network/Network.h>
+
+namespace Chat
+{
+	class Client
+	{
+	public:
+		Client();
+		Client(Client& other) = delete;
+
+		//////////////////////////////////////////////////
+
+
+		
+		//////////////////////////////////////////////////
+
+		Client& operator=(Client& rhs) = delete;
+		
+		//////////////////////////////////////////////////
+		~Client();
+
+	private:
+	};
+}

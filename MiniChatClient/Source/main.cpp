@@ -1,5 +1,5 @@
 ///Client
-#include <Network/Network.h>
+#include "Client.h"
 #include <stdio.h> /* printf */
 
 ////////////////////////////////////////////////////////Readconsole
@@ -31,7 +31,7 @@ VOID ErrorExit(LPSTR lpszMessage)
     ExitProcess(0);
 }
 
-VOID KeyEventProc(KEY_EVENT_RECORD ker, Net::Socket client)
+VOID KeyEventProc(KEY_EVENT_RECORD ker, Net::Socket& client)
 {
     //printf("Key event: ");
 
