@@ -4,6 +4,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include <unordered_map>
+#include <string>
+
 namespace Chat
 {
 	class Server
@@ -14,7 +17,10 @@ namespace Chat
 
 		//////////////////////////////////////////////////
 
-
+		void	CreateServer();
+		void	Run();
+		HANDLE	GetListenerHandle();
+		HANDLE	GetReceiverHandle();
 
 		//////////////////////////////////////////////////
 
@@ -24,8 +30,11 @@ namespace Chat
 		~Server();
 
 	private:
-		Net::Socket* m_Listener = nullptr;
-		Net::Socket* m_Receiver = nullptr;
-		short* m_ErrCode = nullptr;
+		std::unordered_map<unsigned __int64, std::string>	m_Usernames;
+
+		Net::Socket*	m_Listener = nullptr;
+		Net::Socket*	m_Receiver = nullptr;
+
+		short*	m_ErrCode = nullptr;
 	};
 }

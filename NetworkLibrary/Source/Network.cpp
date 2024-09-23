@@ -245,6 +245,7 @@ namespace Net
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 		SOCKET listener = ((Network*)m_Network)->GetPollfds()[0].fd;
+		SOCKET receiver = ((Network*)m_Network)->GetPollfds()[1].fd;
 
 		struct sockaddr_storage remoteAddr; // Client address
 		char remoteIP[INET6_ADDRSTRLEN];
@@ -322,7 +323,7 @@ namespace Net
 								SOCKET destination = pfds[j].fd;
 
 								// Except the listener and ourselves
-								if (destination != listener && destination != sender) 
+								if (destination != listener && destination != sender && destination != receiver) 
 								{
 									if (SOCKET_ERROR == send(destination, buf, recvBytes, 0)) 
 									{

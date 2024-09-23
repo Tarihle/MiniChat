@@ -14,11 +14,11 @@ namespace Chat
 
 		//////////////////////////////////////////////////
 
-		void Connect();
-		HANDLE GetSocketHandle();
-		void SendMsg(char* msg, short length);
-		void ReceiveMsg();
-		void Close();
+		void	Connect();
+		HANDLE	GetSocketHandle();
+		void	SendMsg(char* msg, short length);
+		void	ReceiveMsg();
+		void	Close();
 		
 		//////////////////////////////////////////////////
 
