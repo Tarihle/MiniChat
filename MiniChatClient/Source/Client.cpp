@@ -17,7 +17,8 @@ namespace Chat
 		}
 
 		//m_Socket->NewSocketConnect("10.5.5.105", "27015", 1); /* Malo */
-		m_Socket->NewSocketConnect("10.5.5.108", "8080", 1); /* VinKé */
+		//m_Socket->NewSocketConnect("10.5.5.108", "8080", 1); /* VinKé */
+		m_Socket->NewSocketConnect("10.5.5.106", "6698", 1); /* VinKé */
 	}
 
 	HANDLE Client::GetSocketHandle()

@@ -55,7 +55,7 @@ namespace Net
 
 		m_Pollfds.push_back(newPollfd);
 
-		return m_Pollfds.size() - 1;
+		return (int)(m_Pollfds.size() - 1);
 	}
 
 	Network::~Network()
