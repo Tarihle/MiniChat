@@ -13,6 +13,7 @@ namespace Net
 		/// <summary>Non-parameterized constructor.</summary>
 		Socket() = delete;
 		Socket(short*& errorOutput);
+		Socket(Socket& other) = delete;
 
 		//////////////////////////////////////////////////
 
@@ -27,6 +28,10 @@ namespace Net
 		void PollLoop();
 		void RecvClient();
 		HANDLE GetHandle();
+		 
+		//////////////////////////////////////////////////
+
+		Socket& operator=(Socket& rhs) = delete;
 		 
 		//////////////////////////////////////////////////
 
