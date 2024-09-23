@@ -9,6 +9,16 @@ namespace Chat
 		m_Socket = new Net::Socket(m_ErrCode);
 	}
 
+	void Client::Connect()
+	{
+		if (nullptr == m_Socket)
+		{
+			return;
+		}
+
+		m_Socket->NewSocketConnect("10.5.5.105", "27015", 1);
+	}
+
 	Client::~Client()
 	{
 		delete m_ErrCode;
