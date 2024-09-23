@@ -19,6 +19,16 @@ namespace Chat
 		m_Socket->NewSocketConnect("10.5.5.105", "27015", 1);
 	}
 
+	void Client::GetSocketHandle()
+	{
+		if (nullptr == m_Socket)
+		{
+			return;
+		}
+
+		m_Socket->GetHandle();
+	}
+
 	Client::~Client()
 	{
 		delete m_ErrCode;
