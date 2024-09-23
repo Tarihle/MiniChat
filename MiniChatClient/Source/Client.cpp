@@ -16,7 +16,7 @@ namespace Chat
 			return;
 		}
 
-		m_Socket->NewSocketConnect("10.5.5.105", "27015", 1);
+		m_Socket->NewSocketConnect("10.5.5.105", "27015", 1); /* IANA says port 6698 is unassigned */
 	}
 
 	HANDLE Client::GetSocketHandle()
@@ -47,6 +47,16 @@ namespace Chat
 		}
 
 		m_Socket->RecvClient();
+	}
+
+	void Client::Close()
+	{
+		if (nullptr == m_Socket)
+		{
+			return;
+		}
+
+		m_Socket->Close();
 	}
 
 	Client::~Client()

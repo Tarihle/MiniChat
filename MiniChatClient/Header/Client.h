@@ -18,6 +18,7 @@ namespace Chat
 		HANDLE GetSocketHandle();
 		void SendMsg(char* msg, short length);
 		void ReceiveMsg();
+		void Close();
 		
 		//////////////////////////////////////////////////
 

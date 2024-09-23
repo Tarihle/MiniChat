@@ -109,17 +109,14 @@ VOID ResizeEventProc(WINDOW_BUFFER_SIZE_RECORD wbsr)
 
 int main()
 {
-    //short* error = new short(-1);
-    //Net::Socket client(error);
     Chat::Client client;
 
-    //client.NewSocketConnect("10.5.5.105", "27015", 1); /* IANA says port 6698 is unassigned */
     client.Connect();
 
     printf("Connecting to 10.5.5.106\n");
 
     DWORD cNumRead, fdwMode, i;
-    CHAR name[8] = {'L', 'o', 'u', 'i', 's', ' ', '>', ' '};
+    CHAR name[8] = {'L', 'o', 'u', 'i', 's', ' ', '>', ' '}; /* TODO Remove temp username */
     INPUT_RECORD irInBuf[128];
     for (int ind = 0; ind < 8; ind++)
     {
@@ -153,7 +150,6 @@ int main()
         DWORD object = WaitForMultipleObjects(2, eventHandles, false, INFINITE);
 
         // Wait for the events.
-        //client.PollClient();
         switch (object)
         {
         case WAIT_OBJECT_0:
@@ -193,8 +189,7 @@ int main()
                 }
             }            break;
         case WAIT_OBJECT_0 + 1:
-            //printf("Socket\n");
-            //client.RecvClient();
+            client.ReceiveMsg();
             break;
         default:
             break;
