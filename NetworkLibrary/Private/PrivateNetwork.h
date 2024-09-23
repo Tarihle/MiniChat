@@ -19,7 +19,7 @@ namespace Net
 		
 		static Network* GetInstance(short*& errorOutput);
 		std::vector<pollfd>& GetPollfds();
-		void AddPollfd(SOCKET& newSocket);
+		int AddPollfd(SOCKET& newSocket);
 
 		//////////////////////////////////////////////////
 

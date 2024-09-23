@@ -46,7 +46,7 @@ namespace Net
 		return m_Pollfds;
 	}
 
-	void Network::AddPollfd(SOCKET& newSocket)
+	int Network::AddPollfd(SOCKET& newSocket)
 	{
 		pollfd newPollfd;
 
@@ -54,6 +54,8 @@ namespace Net
 		newPollfd.events = POLLIN;
 
 		m_Pollfds.push_back(newPollfd);
+
+		return m_Pollfds.size() - 1;
 	}
 
 	Network::~Network()
@@ -142,12 +144,15 @@ namespace Net
 			reportWindowsError(TEXT("socket"), WSAGetLastError());
 		}
 
-		((Network*)m_Network)->AddPollfd(newSocket);
+		int idx = ((Network*)m_Network)->AddPollfd(newSocket);
 
-		if (SOCKET_ERROR == bind(((Network*)m_Network)->GetPollfds()[0].fd, list->ai_addr, (int)list->ai_addrlen))
+		if (SOCKET_ERROR == bind(((Network*)m_Network)->GetPollfds()[idx].fd, list->ai_addr, (int)list->ai_addrlen))
 		{
 			reportWindowsError(TEXT("bind"), WSAGetLastError());
 		}
+
+		m_Handle = WSACreateEvent();
+		WSAEventSelect(((Network*)m_Network)->GetPollfds()[idx].fd, m_Handle, FD_READ);
 
 		freeaddrinfo(list); /* free the linked list */
 	}
@@ -183,12 +188,12 @@ namespace Net
 			reportWindowsError(TEXT("socket"), WSAGetLastError());
 		}
 
-		((Network*)m_Network)->AddPollfd(newSocket);
+		int idx = ((Network*)m_Network)->AddPollfd(newSocket);
 
-		connect(((Network*)m_Network)->GetPollfds()[0].fd, list->ai_addr, (int)list->ai_addrlen);
+		connect(((Network*)m_Network)->GetPollfds()[idx].fd, list->ai_addr, (int)list->ai_addrlen);
 
 		m_Handle = WSACreateEvent();
-		WSAEventSelect(((Network*)m_Network)->GetPollfds()[0].fd, m_Handle, FD_READ);
+		WSAEventSelect(((Network*)m_Network)->GetPollfds()[idx].fd, m_Handle, FD_READ);
 
 		freeaddrinfo(list); /* free the linked list */
 	}
