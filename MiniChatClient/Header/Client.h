@@ -21,5 +21,7 @@ namespace Chat
 		~Client();
 
 	private:
+		Net::Socket	m_Socket;
+		short*		m_ErrCode = nullptr;
 	};
 }
