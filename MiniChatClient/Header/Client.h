@@ -14,7 +14,7 @@ namespace Chat
 
 		//////////////////////////////////////////////////
 
-		void	Connect();
+		void	Connect(const char* username, int len);
 		HANDLE	GetSocketHandle();
 		void	SendMsg(char* msg, short length);
 		void	ReceiveMsg();

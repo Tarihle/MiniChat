@@ -1,6 +1,8 @@
 ///Client
 #include "Client.h"
 #include <stdio.h> /* printf */
+#include <string>
+#include <iostream> /* cin */
 
 ////////////////////////////////////////////////////////Readconsole
 
@@ -107,7 +109,10 @@ int main()
 {
     Chat::Client client;
 
-    client.Connect();
+    std::string username;
+    std::cout << "Choose a username: ";
+    std::cin >> username;
+    client.Connect(username.c_str(), (int)username.size());
 
     printf("Connecting to 10.5.5.106\n");
 
@@ -137,13 +142,13 @@ int main()
     if (!SetConsoleMode(hStdin, fdwMode))
         ErrorExit((LPSTR)"SetConsoleMode");
 
-    HANDLE eventHandles[2] = { hStdin, client.GetSocketHandle() };
+    HANDLE eventHandles[] = { hStdin, client.GetSocketHandle() };
 
     // Loop to read and handle the next 100 input events.
 
     while (true)
     {
-        DWORD object = WaitForMultipleObjects(2, eventHandles, false, INFINITE);
+        DWORD object = WaitForMultipleObjects(ARRAYSIZE(eventHandles), eventHandles, false, INFINITE);
 
         // Wait for the events.
         switch (object)
@@ -183,15 +188,14 @@ int main()
                     ErrorExit((LPSTR)"Unknown event type");
                     break;
                 }
-            }            break;
+            }            
+            break;
         case WAIT_OBJECT_0 + 1:
             client.ReceiveMsg();
             break;
         default:
             break;
         }
-
-
     }
 
     // Restore input mode on exit.

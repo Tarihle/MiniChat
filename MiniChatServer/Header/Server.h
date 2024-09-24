@@ -9,6 +9,8 @@
 
 namespace Chat
 {
+	static std::unordered_map<unsigned __int64, std::string>	Usernames;
+
 	class Server
 	{
 	public:
@@ -29,13 +31,10 @@ namespace Chat
 		~Server();
 
 	private:
-		std::unordered_map<unsigned __int64, std::string>	m_Usernames;
-
 		Net::Socket*	m_Listener = nullptr;
-
-		short*	m_ErrCode = nullptr;
+		short*			m_ErrCode = nullptr;
 	};
 
-	void HandleConnection(unsigned __int64& socket, Net::Socket& server);
+	void HandleConnection(unsigned __int64& socket, char* username, Net::Socket& server);
 
 }

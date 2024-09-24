@@ -30,8 +30,8 @@ namespace Net
 		void Send(const char* buf, int len, unsigned __int64 destination);
 		void SendAll(const char* buf, int len);
 		void SendAll(const char* buf, int len, unsigned __int64 unwantedDestination);
-		void PollLoop(std::function<void(unsigned __int64&, Socket&)> funcPtr);
-		void OnConnect(std::function<void(unsigned __int64&, Socket&)> funcPtr, unsigned __int64 scktNbr);
+		void PollLoop(std::function<void(unsigned __int64&, char*, Socket&)> funcPtr);
+		void OnConnect(std::function<void(unsigned __int64&, char*, Socket&)> funcPtr, unsigned __int64 scktNbr, char* buf);
 		void OnReceiveData(std::function<void(char*)> funcPtr);
 		HANDLE GetHandle();
 		 

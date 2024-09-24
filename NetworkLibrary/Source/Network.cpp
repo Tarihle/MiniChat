@@ -238,13 +238,13 @@ namespace Net
 	void Socket::Send(const char* buf, int len)
 	{
 		consolePrint("%1!s!\n", buf);
-		send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len, 0);
+		send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len + 1, 0); /* +1 because we will force \0 on the last character */
 	}
 
 	void Socket::Send(const char* buf, int len, unsigned __int64 destination)
 	{
 		consolePrint("%1!s!\n", buf);
-		send(destination, buf, len, 0);
+		send(destination, buf, len + 1, 0); /* +1 because we will force \0 on the last character */
 	}
 
 	void Socket::SendAll(const char* buf, int len)
@@ -257,7 +257,7 @@ namespace Net
 			// Send to everyone!
 			SOCKET destination = pfds[j].fd;
 
-			if (SOCKET_ERROR == send(destination, buf, len, 0))
+			if (SOCKET_ERROR == send(destination, buf, len + 1, 0)) /* +1 because we will force \0 on the last character */
 			{
 				reportWindowsError(TEXT("SendAll"), WSAGetLastError());
 			}
@@ -277,7 +277,7 @@ namespace Net
 			// Except the serverListener and ourselves
 			if (destination != unwantedDestination)
 			{
-				if (SOCKET_ERROR == send(destination, buf, len, 0))
+				if (SOCKET_ERROR == send(destination, buf, len + 1, 0)) /* +1 because we will force \0 on the last character */
 				{
 					reportWindowsError(TEXT("sendAll"), WSAGetLastError());
 				}
@@ -285,7 +285,7 @@ namespace Net
 		}
 	}
 
-	void Socket::PollLoop(std::function<void(unsigned __int64&, Socket&)> funcPtr)
+	void Socket::PollLoop(std::function<void(unsigned __int64&, char*, Socket&)> funcPtr)
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 		SOCKET serverListener = ((Network*)m_Network)->GetPollfds()[0].fd;
@@ -318,7 +318,6 @@ namespace Net
 						// If serverListener is ready to read, handle new connection
 						addrLength = sizeof remoteAddr;
 						newFd = accept(serverListener, (struct sockaddr*)&remoteAddr, &addrLength);
-						OnConnect(funcPtr, newFd);
 
 						if (INVALID_SOCKET == newFd) 
 						{
@@ -332,6 +331,10 @@ namespace Net
 								inet_ntop(remoteAddr.ss_family, GetAddr((struct sockaddr*)&remoteAddr), remoteIP, INET6_ADDRSTRLEN), 
 								newFd);
 							consolePrint("Numbers of sockets check: %1!d!\n", (int)pfds.size());
+
+							recv(pfds[pfds.size() - 1].fd, buf, sizeof buf, 0);
+
+							OnConnect(funcPtr, newFd, buf);
 						}
 					}
 					else 
@@ -390,9 +393,9 @@ namespace Net
 		} // END for(;;)--and you thought it would never end!
 	}
 
-	void Socket::OnConnect(std::function<void(unsigned __int64&, Socket&)> funcPtr, unsigned __int64  scktNbr)
+	void Socket::OnConnect(std::function<void(unsigned __int64&, char*, Socket&)> funcPtr, unsigned __int64  scktNbr, char* buf)
 	{
-		funcPtr(scktNbr, *this);
+		funcPtr(scktNbr, buf, *this);
 	}
 
 	void Socket::OnReceiveData(std::function<void(char*)> funcPtr)

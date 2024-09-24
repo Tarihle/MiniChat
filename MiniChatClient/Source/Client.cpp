@@ -9,7 +9,7 @@ namespace Chat
 		m_Socket = new Net::Socket(m_ErrCode);
 	}
 
-	void Client::Connect()
+	void Client::Connect(const char* username, int len)
 	{
 		if (nullptr == m_Socket)
 		{
@@ -19,6 +19,8 @@ namespace Chat
 		//m_Socket->NewSocketConnect("10.5.5.105", "27015", 1); /* Malo */
 		//m_Socket->NewSocketConnect("10.5.5.108", "8080", 1); /* VinKé */
 		m_Socket->NewSocketConnect("10.5.5.106", "6698", 1); /* Louis */
+
+		m_Socket->Send(username, len);
 	}
 
 	HANDLE Client::GetSocketHandle()

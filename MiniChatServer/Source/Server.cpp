@@ -36,8 +36,27 @@ namespace Chat
 		delete m_ErrCode;
 	}
 
-	void HandleConnection(unsigned __int64& socket, Net::Socket& server)
+	void HandleConnection(unsigned __int64& socket, char* username, Net::Socket& server)
 	{
-		server.Send("Bonjour", 8, socket);
+		std::string Welcome = "Hello ";
+		Welcome += username;
+
+		if (Usernames.empty())
+		{
+			Welcome += "\n Nobody is in the currently in the server.";
+		}
+		else
+		{
+			Welcome += "\n Users currently connected: ";
+			for (auto& it : Usernames)
+			{
+				Welcome += it.second;
+				Welcome += ", ";
+			}
+		}
+
+		server.Send(Welcome.c_str(), (int)Welcome.size(), socket);
+
+		Usernames[socket] = username;
 	}
 }
