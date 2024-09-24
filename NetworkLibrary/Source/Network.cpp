@@ -129,7 +129,7 @@ namespace Net
 		status = getaddrinfo(IPAddress, port, &hints, &list);
 		if (status != 0)    /* getaddrinfo return 0 on success */
 		{
-			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+			reportWindowsError(TEXT("getaddrinfo"), WSAGetLastError());
 			//return 2;
 		}
 
@@ -173,7 +173,7 @@ namespace Net
 		status = getaddrinfo(IPAddress, port, &hints, &list);
 		if (status != 0)    /* getaddrinfo return 0 on success */
 		{
-			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+			reportWindowsError(TEXT("getaddrinfo"), WSAGetLastError());
 			//return 2;
 		}
 
@@ -222,7 +222,7 @@ namespace Net
 		new_fd = accept(((Network*)m_Network)->GetPollfds()[0].fd, (struct sockaddr*)&their_addr, &addr_size);
 		if (INVALID_SOCKET != new_fd)
 		{
-			printf("New client connected");
+			consolePrint("New client connected\n");
 		}
 		else
 		{
@@ -237,15 +237,15 @@ namespace Net
 
 	void Socket::Send(const char* buf, int len)
 	{
-		printf("%s\n", buf);
+		consolePrint("%1!s!\n", buf);
 		send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len, 0);
 	}
 
 	void Socket::PollLoop()
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
-		SOCKET listener = ((Network*)m_Network)->GetPollfds()[0].fd;
-		SOCKET receiver = ((Network*)m_Network)->GetPollfds()[1].fd;
+		SOCKET serverListener = ((Network*)m_Network)->GetPollfds()[0].fd;
+		SOCKET serverReceiver = ((Network*)m_Network)->GetPollfds()[1].fd;
 
 		struct sockaddr_storage remoteAddr; // Client address
 		char remoteIP[INET6_ADDRSTRLEN];
@@ -270,11 +270,11 @@ namespace Net
 				// Check if someone's ready to read
 				if (pfds[i].revents & POLLIN) 
 				{ // We got one!!
-					if (pfds[i].fd == listener) 
+					if (pfds[i].fd == serverListener) 
 					{
-						// If listener is ready to read, handle new connection
+						// If serverListener is ready to read, handle new connection
 						addrLength = sizeof remoteAddr;
-						newFd = accept(listener, (struct sockaddr*)&remoteAddr, &addrLength);
+						newFd = accept(serverListener, (struct sockaddr*)&remoteAddr, &addrLength);
 
 						if (INVALID_SOCKET == newFd) 
 						{
@@ -284,15 +284,15 @@ namespace Net
 						{
 							((Network*)m_Network)->AddPollfd(newFd);
 
-							printf("pollserver: new connection from %s on socket %llu\n",
+							consolePrint("pollserver: new connection from %1!s! on socket %2!llu!\n",
 								inet_ntop(remoteAddr.ss_family, GetAddr((struct sockaddr*)&remoteAddr), remoteIP, INET6_ADDRSTRLEN), 
 								newFd);
-							printf("Numbers of sockets check: %d\n", (int)pfds.size());
+							consolePrint("Numbers of sockets check: %1!d!\n", (int)pfds.size());
 						}
 					}
 					else 
 					{
-						// If not the listener, we're just a regular client
+						// If not the serverListener, we're just a regular client
 						int recvBytes = recv(pfds[i].fd, buf, sizeof buf, 0);
 						buf[recvBytes - 1] = '\0';
 
@@ -301,7 +301,7 @@ namespace Net
 						if (recvBytes == 0) 
 						{
 							// Connection closed
-							printf("pollserver: socket %llu hung up\n", sender);
+							consolePrint(TEXT("pollserver: socket %1!llu! hung up\n"), sender);
 
 							closesocket(pfds[i].fd); // Bye!
 							pfds.erase(pfds.begin() + i);
@@ -314,7 +314,7 @@ namespace Net
 						}
 						else 
 						{
-							printf("%s\n", buf);
+							consolePrint(TEXT("%1!s!\n"), buf);
 
 							// We got some good data from a client
 							for (int j = 0; j < pfds.size(); j++) 
@@ -322,8 +322,8 @@ namespace Net
 								// Send to everyone!
 								SOCKET destination = pfds[j].fd;
 
-								// Except the listener and ourselves
-								if (destination != listener && destination != sender && destination != receiver) 
+								// Except the serverListener and ourselves
+								if (destination != serverListener && destination != sender && destination != serverReceiver) 
 								{
 									if (SOCKET_ERROR == send(destination, buf, recvBytes, 0)) 
 									{
@@ -337,7 +337,7 @@ namespace Net
 				else if (pfds[i].revents & POLLERR || pfds[i].revents & POLLHUP)
 				{
 					// Connection closed
-					printf("pollserver: socket %llu aborted connection\n", pfds[i].fd);
+					consolePrint(TEXT("pollserver: socket %1!llu! aborted connection\n"), pfds[i].fd);
 
 					closesocket(pfds[i].fd); // Bye!
 					pfds.erase(pfds.begin() + i);
