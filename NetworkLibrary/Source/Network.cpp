@@ -247,6 +247,44 @@ namespace Net
 		send(destination, buf, len, 0);
 	}
 
+	void Socket::SendAll(const char* buf, int len)
+	{
+		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
+
+		// We got some good data from a client
+		for (int j = 1; j < pfds.size(); j++) /* Beginning at 1 to avoid sending to listener */
+		{
+			// Send to everyone!
+			SOCKET destination = pfds[j].fd;
+
+			if (SOCKET_ERROR == send(destination, buf, len, 0))
+			{
+				reportWindowsError(TEXT("SendAll"), WSAGetLastError());
+			}
+		}
+	}
+
+	void Socket::SendAll(const char* buf, int len, unsigned __int64 unwantedDestination)
+	{
+		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
+
+		// We got some good data from a client
+		for (int j = 1; j < pfds.size(); j++)
+		{
+			// Send to everyone!
+			SOCKET destination = pfds[j].fd;
+
+			// Except the serverListener and ourselves
+			if (destination != unwantedDestination)
+			{
+				if (SOCKET_ERROR == send(destination, buf, len, 0))
+				{
+					reportWindowsError(TEXT("sendAll"), WSAGetLastError());
+				}
+			}
+		}
+	}
+
 	void Socket::PollLoop(std::function<void(unsigned __int64&, Socket&)> funcPtr)
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
