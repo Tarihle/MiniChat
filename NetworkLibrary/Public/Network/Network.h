@@ -26,8 +26,9 @@ namespace Net
 		void Listening();
 		void Accepting();
 		void Close();
-		void Send(const char* buf, int len);
-		void PollLoop();
+		void Send(const char* buf, int len, unsigned __int64 optionalDestination = 0);
+		void PollLoop(std::function<void(unsigned __int64&, Socket&)> funcPtr);
+		void OnConnect(std::function<void(unsigned __int64&, Socket&)> funcPtr, unsigned __int64 scktNbr);
 		void OnReceiveData(std::function<void(char*)> funcPtr);
 		HANDLE GetHandle();
 		 

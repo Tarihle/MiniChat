@@ -235,17 +235,23 @@ namespace Net
 		shutdown(((Network*)m_Network)->GetPollfds()[0].fd, SD_BOTH);
 	}
 
-	void Socket::Send(const char* buf, int len)
+	void Socket::Send(const char* buf, int len, unsigned __int64 optionalDestination)
 	{
 		consolePrint("%1!s!\n", buf);
-		send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len, 0);
+		if (0 == optionalDestination)
+		{
+			send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len, 0);
+		}
+		else
+		{
+			send(optionalDestination, buf, len, 0);
+		}
 	}
 
-	void Socket::PollLoop()
+	void Socket::PollLoop(std::function<void(unsigned __int64&, Socket&)> funcPtr)
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 		SOCKET serverListener = ((Network*)m_Network)->GetPollfds()[0].fd;
-		SOCKET serverReceiver = ((Network*)m_Network)->GetPollfds()[1].fd;
 
 		struct sockaddr_storage remoteAddr; // Client address
 		char remoteIP[INET6_ADDRSTRLEN];
@@ -275,6 +281,7 @@ namespace Net
 						// If serverListener is ready to read, handle new connection
 						addrLength = sizeof remoteAddr;
 						newFd = accept(serverListener, (struct sockaddr*)&remoteAddr, &addrLength);
+						OnConnect(funcPtr, newFd);
 
 						if (INVALID_SOCKET == newFd) 
 						{
@@ -323,7 +330,7 @@ namespace Net
 								SOCKET destination = pfds[j].fd;
 
 								// Except the serverListener and ourselves
-								if (destination != serverListener && destination != sender && destination != serverReceiver) 
+								if (destination != serverListener && destination != sender) 
 								{
 									if (SOCKET_ERROR == send(destination, buf, recvBytes, 0)) 
 									{
@@ -344,6 +351,11 @@ namespace Net
 				}
 			} // END looping through file descriptors
 		} // END for(;;)--and you thought it would never end!
+	}
+
+	void Socket::OnConnect(std::function<void(unsigned __int64&, Socket&)> funcPtr, unsigned __int64  scktNbr)
+	{
+		funcPtr(scktNbr, *this);
 	}
 
 	void Socket::OnReceiveData(std::function<void(char*)> funcPtr)

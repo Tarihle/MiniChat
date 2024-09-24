@@ -20,7 +20,6 @@ namespace Chat
 		void	CreateServer();
 		void	Run();
 		HANDLE	GetListenerHandle();
-		HANDLE	GetReceiverHandle();
 
 		//////////////////////////////////////////////////
 
@@ -33,8 +32,10 @@ namespace Chat
 		std::unordered_map<unsigned __int64, std::string>	m_Usernames;
 
 		Net::Socket*	m_Listener = nullptr;
-		Net::Socket*	m_Receiver = nullptr;
 
 		short*	m_ErrCode = nullptr;
 	};
+
+	void HandleConnection(unsigned __int64& socket, Net::Socket& server);
+
 }
