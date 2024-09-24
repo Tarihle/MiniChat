@@ -235,17 +235,16 @@ namespace Net
 		shutdown(((Network*)m_Network)->GetPollfds()[0].fd, SD_BOTH);
 	}
 
-	void Socket::Send(const char* buf, int len, unsigned __int64 optionalDestination)
+	void Socket::Send(const char* buf, int len)
 	{
 		consolePrint("%1!s!\n", buf);
-		if (0 == optionalDestination)
-		{
-			send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len, 0);
-		}
-		else
-		{
-			send(optionalDestination, buf, len, 0);
-		}
+		send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len, 0);
+	}
+
+	void Socket::Send(const char* buf, int len, unsigned __int64 destination)
+	{
+		consolePrint("%1!s!\n", buf);
+		send(destination, buf, len, 0);
 	}
 
 	void Socket::PollLoop(std::function<void(unsigned __int64&, Socket&)> funcPtr)
