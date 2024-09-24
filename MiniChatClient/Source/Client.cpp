@@ -18,7 +18,7 @@ namespace Chat
 
 		//m_Socket->NewSocketConnect("10.5.5.105", "27015", 1); /* Malo */
 		//m_Socket->NewSocketConnect("10.5.5.108", "8080", 1); /* VinKé */
-		m_Socket->NewSocketConnect("10.5.5.106", "6698", 1); /* VinKé */
+		m_Socket->NewSocketConnect("10.5.5.106", "6698", 1); /* Louis */
 	}
 
 	HANDLE Client::GetSocketHandle()
@@ -48,7 +48,7 @@ namespace Chat
 			return;
 		}
 
-		m_Socket->RecvClient();
+		m_Socket->OnReceiveData(HandleMsg);
 	}
 
 	void Client::Close()
@@ -67,5 +67,10 @@ namespace Chat
 
 		delete m_ErrCode;
 		delete m_Socket;
+	}
+
+	void HandleMsg(char* msg)
+	{
+		printf("%s\n", msg);
 	}
 }

@@ -31,4 +31,7 @@ namespace Chat
 		Net::Socket*	m_Socket = nullptr;
 		short*			m_ErrCode = nullptr;
 	};
+
+	void	HandleMsg(char* msg);
+
 }

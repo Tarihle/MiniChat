@@ -346,7 +346,7 @@ namespace Net
 		} // END for(;;)--and you thought it would never end!
 	}
 
-	void Socket::RecvClient()
+	void Socket::OnReceiveData(std::function<void(char*)> funcPtr)
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 		char buf[256];    // Buffer for client data
@@ -360,10 +360,10 @@ namespace Net
 		}
 		else
 		{
-			printf("%s\n", buf);
+			funcPtr(buf);
 		}
 
-			WSAResetEvent(m_Handle);
+		WSAResetEvent(m_Handle);
 	}
 
 	HANDLE Socket::GetHandle()

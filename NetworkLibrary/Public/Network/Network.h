@@ -5,6 +5,8 @@
 #include <Windows.h>
 #endif
 
+#include <functional>
+
 namespace Net
 {
 	class Socket
@@ -26,7 +28,7 @@ namespace Net
 		void Close();
 		void Send(const char* buf, int len);
 		void PollLoop();
-		void RecvClient();
+		void OnReceiveData(std::function<void(char*)> funcPtr);
 		HANDLE GetHandle();
 		 
 		//////////////////////////////////////////////////
