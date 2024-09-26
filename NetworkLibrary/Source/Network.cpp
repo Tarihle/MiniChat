@@ -343,6 +343,7 @@ namespace Net
 						int recvBytes = recv(pfds[i].fd, buf, sizeof buf, 0);
 						buf[recvBytes - 1] = '\0';
 
+
 						SOCKET sender = pfds[i].fd;
 
 						if (recvBytes == 0) 
@@ -352,8 +353,6 @@ namespace Net
 
 							closesocket(pfds[i].fd); // Bye!
 							pfds.erase(pfds.begin() + i);
-
-							//del_from_pfds(pfds, i, &pfds.size());
 						}
 						else if (recvBytes < 0)
 						{

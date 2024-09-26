@@ -53,6 +53,10 @@ namespace Chat
 				Welcome += it.second;
 				Welcome += ", ";
 			}
+
+			std::string WelcomeAll = username;
+			WelcomeAll += " is now online.";
+			server.SendAll(WelcomeAll.c_str(), (int)WelcomeAll.size(), socket);
 		}
 
 		server.Send(Welcome.c_str(), (int)Welcome.size(), socket);
