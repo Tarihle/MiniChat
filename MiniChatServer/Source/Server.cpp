@@ -36,26 +36,26 @@ namespace Chat
 		delete m_ErrCode;
 	}
 
-	void HandleConnection(unsigned __int64& socket, char* username, Net::Socket& server)
+	void HandleConnection(unsigned __int64& socket, TCHAR* username, Net::Socket& server)
 	{
-		std::string Welcome = "Hello ";
+		TSTR Welcome = TEXT("Hello ");
 		Welcome += username;
 
 		if (Usernames.empty())
 		{
-			Welcome += "\n Nobody is in the currently in the server.";
+			Welcome += TEXT("\n Nobody is in the currently in the server.");
 		}
 		else
 		{
-			Welcome += "\n Users currently connected: ";
+			Welcome += TEXT("\n Users currently connected: ");
 			for (auto& it : Usernames)
 			{
 				Welcome += it.second;
-				Welcome += ", ";
+				Welcome += TEXT(", ");
 			}
 
-			std::string WelcomeAll = username;
-			WelcomeAll += " is now online.";
+			TSTR WelcomeAll = username;
+			WelcomeAll += TEXT(" is now online.");
 			server.SendAll(WelcomeAll.c_str(), (int)WelcomeAll.size(), socket);
 		}
 
@@ -64,10 +64,10 @@ namespace Chat
 		Usernames[socket] = username;
 	}
 
-	std::string HandleData(char* data, unsigned __int64& socket)
+	TSTR HandleData(TCHAR* data, unsigned __int64& socket)
 	{
-		std::string msg = Usernames[socket];
-		msg += " > ";
+		TSTR msg = Usernames[socket];
+		msg += TEXT(" > ");
 		msg += data;
 		return msg;
 	}

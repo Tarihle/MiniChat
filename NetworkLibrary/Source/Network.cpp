@@ -1,7 +1,5 @@
-#include "PrivateNetwork.h"
 #include "ErrorHandling.hpp"
-
-#include "Network.h"
+#include "PrivateNetwork.h"
 
 constexpr short Exit_WSAStartup = 1'01;
 constexpr short Exit_WSACleanup = 1'02;
@@ -9,15 +7,26 @@ constexpr short Exit_WSACleanup = 1'02;
 constexpr BYTE minorVersion = 2;
 constexpr BYTE majorVersion = 2;
 
-//#define PORT "6698"
-//#define IP "localhost"
-
 namespace Net
 {
 	Network* Network::m_Instance = nullptr;
 
 	Network::Network(short*& errorOutput)
 	{
+#ifdef UNICODE
+		_setmode(_fileno(stdout), _O_U16TEXT);	/* Sets unicode UTF16 character mode */
+#else
+		DWORD codePage;
+		if (GetLocaleInfoEx(L"Fr-FR", LOCALE_IDEFAULTANSICODEPAGE | LOCALE_RETURN_NUMBER, (LPWSTR)&codePage, 2))
+		{
+			SetConsoleOutputCP(1252);	/* Sets code page to western europ latin when in ANSI */
+		}
+		else
+		{
+			reportWindowsError(TEXT("GetLocaleInfoEx"), GetLastError());
+		}
+#endif
+
 		///* WSA Startup */
 		WSADATA data;
 		int result = WSAStartup(MAKEWORD(majorVersion, minorVersion), &data);
@@ -190,7 +199,12 @@ namespace Net
 
 		int idx = ((Network*)m_Network)->AddPollfd(newSocket);
 
-		connect(((Network*)m_Network)->GetPollfds()[idx].fd, list->ai_addr, (int)list->ai_addrlen);
+		status = connect(((Network*)m_Network)->GetPollfds()[idx].fd, list->ai_addr, (int)list->ai_addrlen);
+
+		if (SOCKET_ERROR == status)
+		{
+			reportWindowsError(TEXT("connect"), WSAGetLastError());
+		}
 
 		m_Handle = WSACreateEvent();
 		WSAEventSelect(((Network*)m_Network)->GetPollfds()[idx].fd, m_Handle, FD_READ);
@@ -222,7 +236,7 @@ namespace Net
 		new_fd = accept(((Network*)m_Network)->GetPollfds()[0].fd, (struct sockaddr*)&their_addr, &addr_size);
 		if (INVALID_SOCKET != new_fd)
 		{
-			consolePrint("New client connected\n");
+			consolePrint(TEXT("New client connected\n"));
 		}
 		else
 		{
@@ -235,17 +249,17 @@ namespace Net
 		shutdown(((Network*)m_Network)->GetPollfds()[0].fd, SD_BOTH);
 	}
 
-	void Socket::Send(const char* buf, int len)
+	void Socket::Send(LPCTSTR buf, int len)
 	{
-		send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len + 1, 0); /* +1 because we will force \0 on the last character */
+		send(((Network*)m_Network)->GetPollfds()[0].fd, (char*)buf, (len + 1) * sizeof(TCHAR), 0); /* +1 because we will force \0 on the last character */
 	}
 
-	void Socket::Send(const char* buf, int len, unsigned __int64 destination)
+	void Socket::Send(LPCTSTR buf, int len, unsigned __int64 destination)
 	{
-		send(destination, buf, len + 1, 0); /* +1 because we will force \0 on the last character */
+		send(destination, (char*)buf, (len + 1) * sizeof(TCHAR), 0); /* +1 because we will force \0 on the last character */
 	}
 
-	void Socket::SendAll(const char* buf, int len)
+	void Socket::SendAll(LPCTSTR buf, int len)
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 
@@ -255,14 +269,14 @@ namespace Net
 			// Send to everyone!
 			SOCKET destination = pfds[j].fd;
 
-			if (SOCKET_ERROR == send(destination, buf, len + 1, 0)) /* +1 because we will force \0 on the last character */
+			if (SOCKET_ERROR == send(destination, (char*)buf, (len + 1) * sizeof(TCHAR), 0)) /* +1 because we will force \0 on the last character */
 			{
 				reportWindowsError(TEXT("SendAll"), WSAGetLastError());
 			}
 		}
 	}
 
-	void Socket::SendAll(const char* buf, int len, unsigned __int64 unwantedDestination)
+	void Socket::SendAll(LPCTSTR buf, int len, unsigned __int64 unwantedDestination)
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 
@@ -275,7 +289,7 @@ namespace Net
 			// Except the serverListener and ourselves
 			if (destination != unwantedDestination)
 			{
-				if (SOCKET_ERROR == send(destination, buf, len + 1, 0)) /* +1 because we will force \0 on the last character */
+				if (SOCKET_ERROR == send(destination, (char*)buf, (len + 1) * sizeof(TCHAR), 0)) /* +1 because we will force \0 on the last character */
 				{
 					reportWindowsError(TEXT("sendAll"), WSAGetLastError());
 				}
@@ -283,8 +297,8 @@ namespace Net
 		}
 	}
 
-	void Socket::PollLoop(std::function<void(unsigned __int64&, char*, Socket&)> connect, 
-						  std::function<std::string(char*, unsigned __int64&)> receive,
+	void Socket::PollLoop(std::function<void(unsigned __int64&, TCHAR*, Socket&)> connect, 
+						  std::function<TSTR(TCHAR*, unsigned __int64&)> receive,
 						  std::function<void(unsigned __int64)> disconnect)
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
@@ -327,14 +341,14 @@ namespace Net
 						{
 							((Network*)m_Network)->AddPollfd(newFd);
 
-							consolePrint("pollserver: new connection from %1!s! on socket %2!llu!\n",
+							consolePrint(TEXT("pollserver: new connection from %1!s! on socket %2!llu!\n"),
 								inet_ntop(remoteAddr.ss_family, GetAddr((struct sockaddr*)&remoteAddr), remoteIP, INET6_ADDRSTRLEN), 
 								newFd);
-							consolePrint("Numbers of sockets check: %1!d!\n", (int)pfds.size());
+							consolePrint(TEXT("Numbers of sockets check: %1!d!\n"), (int)pfds.size());
 
 							recv(pfds[pfds.size() - 1].fd, buf, sizeof buf, 0);
 
-							OnConnect(connect, newFd, buf);
+							OnConnect(connect, newFd, (TCHAR*)buf);
 						}
 					}
 					else 
@@ -359,7 +373,7 @@ namespace Net
 						else 
 						{
 							buf[recvBytes - 1] = '\0';
-							std::string treatedData = OnServerReceive(receive, buf, sender);
+							TSTR treatedData = OnServerReceive(receive, (TCHAR*)buf, sender);
 
 							consolePrint(TEXT("%1!s!\n"), treatedData.c_str());
 
@@ -372,7 +386,7 @@ namespace Net
 								// Except the serverListener and ourselves
 								if (destination != serverListener && destination != sender) 
 								{
-									if (SOCKET_ERROR == send(destination, treatedData.c_str(), (int)treatedData.size() + 1, 0))
+									if (SOCKET_ERROR == send(destination, (char*)treatedData.c_str(), (int)treatedData.size() + 1, 0))
 									{
 										reportWindowsError(TEXT("send"), WSAGetLastError());
 									}
@@ -394,18 +408,18 @@ namespace Net
 		} // END for(;;)--and you thought it would never end!
 	}
 
-	void Socket::OnConnect(std::function<void(unsigned __int64&, char*, Socket&)> funcPtr, unsigned __int64  scktNbr, char* buf)
+	void Socket::OnConnect(std::function<void(unsigned __int64&, TCHAR*, Socket&)> funcPtr, unsigned __int64  scktNbr, TCHAR* buf)
 	{
 		funcPtr(scktNbr, buf, *this);
 	}
 
-	std::string Socket::OnServerReceive(std::function<std::string(char*, unsigned __int64&)> funcPtr, 
-										 char* data, unsigned __int64& scktNbr)
+	TSTR Socket::OnServerReceive(std::function<TSTR(TCHAR*, unsigned __int64&)> funcPtr, 
+										 TCHAR* data, unsigned __int64& scktNbr)
 	{
 		return funcPtr(data, scktNbr);
 	}
 
-	void Socket::OnReceiveData(std::function<void(char*)> funcPtr)
+	void Socket::OnReceiveData(std::function<void(TCHAR*)> funcPtr)
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 		char buf[256];    // Buffer for client data
@@ -419,7 +433,7 @@ namespace Net
 		}
 		else
 		{
-			funcPtr(buf);
+			funcPtr((TCHAR*)buf);
 		}
 
 		WSAResetEvent(m_Handle);
@@ -438,11 +452,11 @@ namespace Net
 	void Socket::PrintSocketAddr(addrinfo* list)
 	{
 		struct addrinfo* iter;
-		printf(TEXT("IP addresses for socket:\n\n"));
+		consolePrint(TEXT("IP addresses for socket:\n"));
 		for (iter = list; iter != nullptr; iter = iter->ai_next)
 		{
 			void* addr;
-			const char* ipver;
+			LPCTSTR ipver;
 
 			// get the pointer to the address itself,
 			// different fields in IPv4 and IPv6:
@@ -450,20 +464,21 @@ namespace Net
 			{ // IPv4
 				struct sockaddr_in* ipv4 = (struct sockaddr_in*)iter->ai_addr;
 				addr = &(ipv4->sin_addr);
-				ipver = "IPv4";
+				ipver = TEXT("IPv4");
 			}
 			else
 			{ // IPv6
 				struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)iter->ai_addr;
 				addr = &(ipv6->sin6_addr);
-				ipver = "IPv6";
+				ipver = TEXT("IPv6");
 			}
 
-			char ipstr[INET6_ADDRSTRLEN];   /* IP string */
+			TCHAR ipstr[INET6_ADDRSTRLEN * sizeof(TCHAR)];   /* IP string */
 
 			// convert the IP to a string and print it:
-			inet_ntop(iter->ai_family, addr, ipstr, sizeof ipstr);
-			printf(TEXT("  %s: %s\n"), ipver, ipstr);
+			InetNtop(iter->ai_family, addr, (LPTSTR)ipstr, sizeof ipstr);
+			//inet_ntop(iter->ai_family, addr, (PSTR)ipstr, sizeof ipstr);
+			consolePrint(TEXT("  %1!s!: %2!s!\n"), ipver, ipstr);
 		}
 	}
 }

@@ -1,14 +1,11 @@
 #pragma once
 #include <Network/Network.h>
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 #include <unordered_map>
 
 namespace Chat
 {
-	static std::unordered_map<unsigned __int64, std::string>	Usernames;
+	static std::unordered_map<unsigned __int64, TSTR>	Usernames;
 
 	class Server
 	{
@@ -34,8 +31,8 @@ namespace Chat
 		short*			m_ErrCode = nullptr;
 	};
 
-	void HandleConnection(unsigned __int64& socket, char* username, Net::Socket& server);
-	std::string HandleData(char* data, unsigned __int64& socket);
+	void HandleConnection(unsigned __int64& socket, TCHAR* username, Net::Socket& server);
+	TSTR HandleData(TCHAR* data, unsigned __int64& socket);
 	void HandleDisconnect(unsigned __int64 socket);
 
 }

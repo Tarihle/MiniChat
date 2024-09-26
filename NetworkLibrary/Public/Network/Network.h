@@ -1,12 +1,26 @@
 #pragma once
+#ifdef _UNICODE
+#undef _UNICODE
+#endif //!_UNICODE
 
-#ifndef _WINDOWS_
-#define WIN32_LEAN_AND_MEAN	/* No need for every windows header */
-#include <Windows.h>
+#ifdef UNICODE
+#undef UNICODE
+#endif //!UNICODE
+
+#include <string>
+
+#if 0	/* 0 == ANSI && 1 == UNICODE */
+#define _UNICODE
+#define UNICODE
+#define TSTR std::wstring
+#else
+#define TSTR std::string
 #endif
 
+#include <tchar.h>
+#define WIN32_LEAN_AND_MEAN	/* No need for every windows header */
+#include <Windows.h>
 #include <functional>
-#include <string>
 
 #define MAX_BUF_SIZE 510 /* Network will force-add \0 char as 511th byte */
 
@@ -29,17 +43,17 @@ namespace Net
 		void Listening();
 		void Accepting();
 		void Close();
-		void Send(const char* buf, int len);
-		void Send(const char* buf, int len, unsigned __int64 destination);
-		void SendAll(const char* buf, int len);
-		void SendAll(const char* buf, int len, unsigned __int64 unwantedDestination);
-		void PollLoop(std::function<void(unsigned __int64&, char*, Socket&)> connect, 
-					  std::function<std::string(char*, unsigned __int64&)> receive,
+		void Send(LPCTSTR buf, int len);
+		void Send(LPCTSTR buf, int len, unsigned __int64 destination);
+		void SendAll(LPCTSTR buf, int len);
+		void SendAll(LPCTSTR buf, int len, unsigned __int64 unwantedDestination);
+		void PollLoop(std::function<void(unsigned __int64&, TCHAR*, Socket&)> connect, 
+					  std::function<TSTR(TCHAR*, unsigned __int64&)> receive,
 					  std::function<void(unsigned __int64)> disconnect);
-		void OnConnect(std::function<void(unsigned __int64&, char*, Socket&)> funcPtr, unsigned __int64 scktNbr, char* buf);
-		std::string OnServerReceive(std::function<std::string(char*, unsigned __int64&)> funcPtr, 
-									 char* data, unsigned __int64& scktNbr);
-		void OnReceiveData(std::function<void(char*)> funcPtr);
+		void OnConnect(std::function<void(unsigned __int64&, TCHAR*, Socket&)> funcPtr, unsigned __int64 scktNbr, TCHAR* buf);
+		TSTR OnServerReceive(std::function<TSTR(TCHAR*, unsigned __int64&)> funcPtr, 
+									 TCHAR* data, unsigned __int64& scktNbr);
+		void OnReceiveData(std::function<void(TCHAR*)> funcPtr);
 		HANDLE GetHandle();
 		 
 		//////////////////////////////////////////////////

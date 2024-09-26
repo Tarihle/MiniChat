@@ -13,30 +13,20 @@ int main()
 
     Chat::Client client;
 
-    std::string username;
+    TSTR username;
+#ifdef UNICODE
+    std::wcout << L"Choose a username: ";
+    std::wcin >> username;
+#else
     std::cout << "Choose a username: ";
     std::cin >> username;
-    client.Connect(username.c_str(), (int)username.size());
-
-    printf("Connecting to 10.5.5.106\n");
+#endif
+    client.Connect((LPCTSTR)username.c_str(), (int)username.size());
 
     INPUT_RECORD irInBuf[128];
     DWORD cNumRead, fdwMode;
 
-    hStdin = GetStdHandle(STD_INPUT_HANDLE);
-
-    // Get the standard input handle.
-    if (hStdin == INVALID_HANDLE_VALUE)
-        client.ErrorExit((LPSTR)"GetStdHandle", hStdin, fdwSaveOldMode);
-
-    // Save the current input mode, to be restored on exit.
-    if (!GetConsoleMode(hStdin, &fdwSaveOldMode))
-        client.ErrorExit((LPSTR)"GetConsoleMode", hStdin, fdwSaveOldMode);
-
-    // Enable the window and mouse input events.
-    fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT;
-    if (!SetConsoleMode(hStdin, fdwMode))
-       client. ErrorExit((LPSTR)"SetConsoleMode", hStdin, fdwSaveOldMode);
+    client.SetConsole(hStdin, fdwSaveOldMode, fdwMode);
 
     HANDLE eventHandles[] = { hStdin, client.GetSocketHandle() };
 

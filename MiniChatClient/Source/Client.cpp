@@ -9,7 +9,7 @@ namespace Chat
 		m_Socket = new Net::Socket(m_ErrCode);
 	}
 
-	void Client::Connect(const char* username, int len)
+	void Client::Connect(LPCTSTR username, int len)
 	{
 		if (nullptr == m_Socket)
 		{
@@ -21,6 +21,8 @@ namespace Chat
 		m_Socket->NewSocketConnect("10.5.5.106", "6698", 1); /* Louis */
 
 		m_Socket->Send(username, len);
+
+		_tprintf(TEXT("Connecting to 10.5.5.106\n"));
 	}
 
 	HANDLE Client::GetSocketHandle()
@@ -33,17 +35,34 @@ namespace Chat
 		return m_Socket->GetHandle();
 	}
 
+	void Client::SetConsole(HANDLE& hConsole, DWORD& oldMode, DWORD& newMode)
+	{
+		hConsole = GetStdHandle(STD_INPUT_HANDLE);
+
+		// Get the standard input handle.
+		if (hConsole == INVALID_HANDLE_VALUE)
+			ErrorExit(TEXT("GetStdHandle"), hConsole, oldMode);
+
+		// Save the current input mode, to be restored on exit.
+		if (!GetConsoleMode(hConsole, &oldMode))
+			ErrorExit(TEXT("GetConsoleMode"), hConsole, oldMode);
+
+		// Enable the window and mouse input events.
+		newMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT;
+		if (!SetConsoleMode(hConsole, newMode))
+			ErrorExit(TEXT("SetConsoleMode"), hConsole, oldMode);
+	}
+
 	void Client::InputConsole(HANDLE hConsole, PINPUT_RECORD inRec, DWORD& recRead, DWORD oldMode)
 	{
 		if (!ReadConsoleInput(
-			hConsole,      // input buffer handle
-			inRec,     // buffer to read into
-			128,         // size of read buffer
+			hConsole,	// input buffer handle
+			inRec,		// buffer to read into
+			128,        // size of read buffer
 			&recRead)) // number of records read
-			ErrorExit((LPSTR)"ReadConsoleInput", hConsole, oldMode);
+			ErrorExit(TEXT("ReadConsoleInput"), hConsole, oldMode);
 
 		// Dispatch the events to the appropriate handler.
-
 		for (DWORD i = 0; i < recRead; i++)
 		{
 			switch (inRec[i].EventType)
@@ -66,7 +85,7 @@ namespace Chat
 				break;
 
 			default:
-				ErrorExit((LPSTR)"Unknown event type", hConsole, oldMode);
+				ErrorExit(TEXT("Unknown event type"), hConsole, oldMode);
 				break;
 			}
 		}
@@ -81,27 +100,25 @@ namespace Chat
 
 		if (VK_RETURN != ker.wVirtualKeyCode && VK_ESCAPE != ker.wVirtualKeyCode && VK_BACK != ker.wVirtualKeyCode && VK_DOWN != ker.wVirtualKeyCode)
 		{
-			m_CharBuf[m_BufIdx] = ker.uChar.AsciiChar;
-			m_BufIdx++;
-			printf("%c", ker.uChar.AsciiChar);
+			m_CharBuf.push_back((TCHAR)ker.uChar.UnicodeChar);
+			_tprintf(TEXT("%c"), (TCHAR)ker.uChar.UnicodeChar);
 		}
 		else if (VK_RETURN == ker.wVirtualKeyCode)
 		{
-			printf("%c[E", 27);
-			m_CharBuf[m_BufIdx] = '\0';
-			m_BufIdx++;
-			SendMsg((char*)m_CharBuf, m_BufIdx);
-			m_BufIdx = 0;
+			_tprintf(TEXT("%c[E"), 27);
+			SendMsg(m_CharBuf.c_str(), (int)m_CharBuf.size());
+			m_CharBuf.clear();
 		}
 		else if (VK_BACK == ker.wVirtualKeyCode)
 		{
-			printf("\b \b");
-			m_BufIdx--;
+			_tprintf(TEXT("\b \b"));
+			if (!m_CharBuf.empty())
+				m_CharBuf.pop_back();
 		}
 		else if (VK_DOWN == ker.wVirtualKeyCode)
 		{
-			printf("%c[2K%c[E", 27, 27);
-			printf(m_CharBuf);
+			_tprintf(TEXT("%c[2K%c[E"), 27, 27);
+			_tprintf(TEXT("%s"), m_CharBuf.c_str());
 		}
 	}
 
@@ -153,18 +170,18 @@ namespace Chat
 		printf("Console screen buffer is %d columns by %d rows.\n", wbsr.dwSize.X, wbsr.dwSize.Y);
 	}
 
-	void Client::ErrorExit(LPSTR lpszMessage, HANDLE hConsole, DWORD oldMode)
+	void Client::ErrorExit(LPCTSTR lpszMessage, HANDLE hConsole, DWORD oldMode)
 	{
-		fprintf(stderr, "%s\n", lpszMessage);
+		//fprintf(stderr, "%s\n", lpszMessage);
+		_tprintf(TEXT("%s\n"), lpszMessage);
 
 		// Restore input mode on exit.
-
 		SetConsoleMode(hConsole, oldMode);
 
 		ExitProcess(0);
 	}
 
-	void Client::SendMsg(char* msg, short length)
+	void Client::SendMsg(LPCTSTR msg, int length)
 	{
 		if (nullptr == m_Socket)
 		{
@@ -182,7 +199,7 @@ namespace Chat
 		}
 
 		m_Socket->OnReceiveData(HandleMsg);
-		printf("%c[E%s", 27, m_CharBuf);
+		_tprintf(TEXT("%c[E%s"), 27, m_CharBuf.c_str());
 	}
 
 	void Client::Close()
@@ -203,9 +220,9 @@ namespace Chat
 		delete m_Socket;
 	}
 
-	void HandleMsg(char* msg)
+	void HandleMsg(TCHAR* msg)
 	{
-		printf("%c[2K", 27);
-		printf("%s", msg);
+		_tprintf(TEXT("%c[2K"), 27);
+		_tprintf(TEXT("%s"), msg);
 	}
 }
