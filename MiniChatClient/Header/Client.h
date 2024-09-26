@@ -4,18 +4,18 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-//#ifdef _UNICODE
-//#undef _UNICODE
-//#endif //!_UNICODE
-//
-//#ifdef UNICODE
-//#undef UNICODE
-//#endif //!UNICODE
-//
-//#if 1	/* 0 == ANSI && 1 == UNICODE */
-//#define _UNICODE
-//#define UNICODE
-//#endif
+#ifdef _UNICODE
+#undef _UNICODE
+#endif //!_UNICODE
+
+#ifdef UNICODE
+#undef UNICODE
+#endif //!UNICODE
+
+#if 1	/* 0 == ANSI && 1 == UNICODE */
+#define _UNICODE
+#define UNICODE
+#endif
 
 namespace Chat
 {
@@ -29,6 +29,11 @@ namespace Chat
 
 		void	Connect(const char* username, int len);
 		HANDLE	GetSocketHandle();
+		void	InputConsole(HANDLE hConsole, PINPUT_RECORD inRec, DWORD& recRead, DWORD oldMode);
+		void	KeyEventProc(KEY_EVENT_RECORD ker);
+		void	MouseEventProc(MOUSE_EVENT_RECORD mer);
+		void	ResizeEventProc(WINDOW_BUFFER_SIZE_RECORD wbsr);
+		void	ErrorExit(LPSTR lpszMessage, HANDLE hConsole, DWORD oldMode);
 		void	SendMsg(char* msg, short length);
 		void	ReceiveMsg();
 		void	Close();
@@ -43,6 +48,9 @@ namespace Chat
 	private:
 		Net::Socket*	m_Socket = nullptr;
 		short*			m_ErrCode = nullptr;
+
+		CHAR	charbuf[MAX_BUF_SIZE];
+		short	bufidx = 0;
 	};
 
 	void	HandleMsg(char* msg);

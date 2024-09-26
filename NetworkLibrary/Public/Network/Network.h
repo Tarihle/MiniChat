@@ -8,6 +8,8 @@
 #include <functional>
 #include <string>
 
+#define MAX_BUF_SIZE 510 /* Network will force-add \0 char as 511th byte */
+
 namespace Net
 {
 	class Socket
