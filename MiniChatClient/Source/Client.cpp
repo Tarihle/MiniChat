@@ -81,27 +81,27 @@ namespace Chat
 
 		if (VK_RETURN != ker.wVirtualKeyCode && VK_ESCAPE != ker.wVirtualKeyCode && VK_BACK != ker.wVirtualKeyCode && VK_DOWN != ker.wVirtualKeyCode)
 		{
-			charbuf[bufidx] = ker.uChar.AsciiChar;
-			bufidx++;
+			m_CharBuf[m_BufIdx] = ker.uChar.AsciiChar;
+			m_BufIdx++;
 			printf("%c", ker.uChar.AsciiChar);
 		}
 		else if (VK_RETURN == ker.wVirtualKeyCode)
 		{
 			printf("%c[E", 27);
-			charbuf[bufidx] = '\0';
-			bufidx++;
-			SendMsg((char*)charbuf, bufidx);
-			bufidx = 0;
+			m_CharBuf[m_BufIdx] = '\0';
+			m_BufIdx++;
+			SendMsg((char*)m_CharBuf, m_BufIdx);
+			m_BufIdx = 0;
 		}
 		else if (VK_BACK == ker.wVirtualKeyCode)
 		{
 			printf("\b \b");
-			bufidx--;
+			m_BufIdx--;
 		}
 		else if (VK_DOWN == ker.wVirtualKeyCode)
 		{
 			printf("%c[2K%c[E", 27, 27);
-			printf(charbuf);
+			printf(m_CharBuf);
 		}
 	}
 
@@ -182,6 +182,7 @@ namespace Chat
 		}
 
 		m_Socket->OnReceiveData(HandleMsg);
+		printf("%c[E%s", 27, m_CharBuf);
 	}
 
 	void Client::Close()
@@ -204,6 +205,7 @@ namespace Chat
 
 	void HandleMsg(char* msg)
 	{
-		printf("%s\n", msg);
+		printf("%c[2K", 27);
+		printf("%s", msg);
 	}
 }

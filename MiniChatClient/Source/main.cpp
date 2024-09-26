@@ -25,13 +25,13 @@ int main()
 
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
 
-    // Save the current input mode, to be restored on exit.
-    if (!GetConsoleMode(hStdin, &fdwSaveOldMode))
-        client.ErrorExit((LPSTR)"GetConsoleMode", hStdin, fdwSaveOldMode);
-
     // Get the standard input handle.
     if (hStdin == INVALID_HANDLE_VALUE)
         client.ErrorExit((LPSTR)"GetStdHandle", hStdin, fdwSaveOldMode);
+
+    // Save the current input mode, to be restored on exit.
+    if (!GetConsoleMode(hStdin, &fdwSaveOldMode))
+        client.ErrorExit((LPSTR)"GetConsoleMode", hStdin, fdwSaveOldMode);
 
     // Enable the window and mouse input events.
     fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT;
@@ -50,42 +50,7 @@ int main()
         switch (object)
         {
         case WAIT_OBJECT_0:
-            client.InputConsole(hStdin, irInBuf, cNumRead, fdwSaveOldMode);
-            //if (!ReadConsoleInput(
-            //    hStdin,      // input buffer handle
-            //    irInBuf,     // buffer to read into
-            //    128,         // size of read buffer
-            //    &cNumRead)) // number of records read
-            //    ErrorExit((LPSTR)"ReadConsoleInput");
-
-            //// Dispatch the events to the appropriate handler.
-
-            //for (i = 0; i < cNumRead; i++)
-            //{
-            //    switch (irInBuf[i].EventType)
-            //    {
-            //    case KEY_EVENT: // keyboard input
-            //        KeyEventProc(irInBuf[i].Event.KeyEvent, client);
-            //        break;
-
-            //    case MOUSE_EVENT: // mouse input
-            //        MouseEventProc(irInBuf[i].Event.MouseEvent);
-            //        break;
-
-            //    case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing
-            //        ResizeEventProc(irInBuf[i].Event.WindowBufferSizeEvent);
-            //        break;
-
-            //    case FOCUS_EVENT:  // disregard focus events
-
-            //    case MENU_EVENT:   // disregard menu events
-            //        break;
-
-            //    default:
-            //        ErrorExit((LPSTR)"Unknown event type");
-            //        break;
-            //    }
-            //}            
+            client.InputConsole(hStdin, irInBuf, cNumRead, fdwSaveOldMode);          
             break;
         case WAIT_OBJECT_0 + 1:
             client.ReceiveMsg();

@@ -49,8 +49,8 @@ namespace Chat
 		Net::Socket*	m_Socket = nullptr;
 		short*			m_ErrCode = nullptr;
 
-		CHAR	charbuf[MAX_BUF_SIZE];
-		short	bufidx = 0;
+		CHAR	m_CharBuf[MAX_BUF_SIZE] = {};
+		short	m_BufIdx = 0;
 	};
 
 	void	HandleMsg(char* msg);
