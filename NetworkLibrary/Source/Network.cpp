@@ -286,7 +286,8 @@ namespace Net
 	}
 
 	void Socket::PollLoop(std::function<void(unsigned __int64&, char*, Socket&)> connect, 
-						  std::function<std::string(char*, unsigned __int64&)> receive)
+						  std::function<std::string(char*, unsigned __int64&)> receive,
+						  std::function<void(unsigned __int64)> disconnect)
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 		SOCKET serverListener = ((Network*)m_Network)->GetPollfds()[0].fd;
@@ -388,6 +389,7 @@ namespace Net
 					consolePrint(TEXT("pollserver: socket %1!llu! aborted connection\n"), pfds[i].fd);
 
 					closesocket(pfds[i].fd); // Bye!
+					disconnect(pfds[i].fd);
 					pfds.erase(pfds.begin() + i);
 				}
 			} // END looping through file descriptors

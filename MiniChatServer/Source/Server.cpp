@@ -17,7 +17,7 @@ namespace Chat
 
 	void Server::Run()
 	{
-		m_Listener->PollLoop(HandleConnection, HandleData);
+		m_Listener->PollLoop(HandleConnection, HandleData, HandleDisconnect);
 	}
 
 	HANDLE Server::GetListenerHandle()
@@ -70,5 +70,10 @@ namespace Chat
 		msg += " > ";
 		msg += data;
 		return msg;
+	}
+
+	void HandleDisconnect(unsigned __int64 socket)
+	{
+		Usernames.erase(socket);
 	}
 }

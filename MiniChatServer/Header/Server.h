@@ -36,5 +36,6 @@ namespace Chat
 
 	void HandleConnection(unsigned __int64& socket, char* username, Net::Socket& server);
 	std::string HandleData(char* data, unsigned __int64& socket);
+	void HandleDisconnect(unsigned __int64 socket);
 
 }
