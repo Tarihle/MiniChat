@@ -17,7 +17,7 @@ namespace Chat
 
 	void Server::Run()
 	{
-		m_Listener->PollLoop(HandleConnection);
+		m_Listener->PollLoop(HandleConnection, HandleData);
 	}
 
 	HANDLE Server::GetListenerHandle()
@@ -62,5 +62,13 @@ namespace Chat
 		server.Send(Welcome.c_str(), (int)Welcome.size(), socket);
 
 		Usernames[socket] = username;
+	}
+
+	std::string HandleData(char* data, unsigned __int64& socket)
+	{
+		std::string msg = Usernames[socket];
+		msg += " > ";
+		msg += data;
+		return msg;
 	}
 }

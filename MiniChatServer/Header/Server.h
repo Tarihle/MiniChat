@@ -5,7 +5,6 @@
 #include <windows.h>
 
 #include <unordered_map>
-#include <string>
 
 namespace Chat
 {
@@ -36,5 +35,6 @@ namespace Chat
 	};
 
 	void HandleConnection(unsigned __int64& socket, char* username, Net::Socket& server);
+	std::string HandleData(char* data, unsigned __int64& socket);
 
 }

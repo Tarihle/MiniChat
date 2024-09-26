@@ -53,7 +53,7 @@ VOID KeyEventProc(KEY_EVENT_RECORD ker, Chat::Client& client)
         //wprintf(wcharbuf);
         //client.Send((char*)charbuf, bufidx);
         client.SendMsg((char*)charbuf, bufidx);
-        bufidx = 8;
+        bufidx = 0;
     }
 }
 
@@ -117,13 +117,7 @@ int main()
     printf("Connecting to 10.5.5.106\n");
 
     DWORD cNumRead, fdwMode, i;
-    CHAR name[8] = {'L', 'o', 'u', 'i', 's', ' ', '>', ' '}; /* TODO Remove temp username */
     INPUT_RECORD irInBuf[128];
-    for (int ind = 0; ind < 8; ind++)
-    {
-        charbuf[ind] = name[ind];
-    }
-    bufidx = 8;
 
     // Get the standard input handle.
 

@@ -285,7 +285,8 @@ namespace Net
 		}
 	}
 
-	void Socket::PollLoop(std::function<void(unsigned __int64&, char*, Socket&)> funcPtr)
+	void Socket::PollLoop(std::function<void(unsigned __int64&, char*, Socket&)> connect, 
+						  std::function<std::string(char*, unsigned __int64&)> receive)
 	{
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
 		SOCKET serverListener = ((Network*)m_Network)->GetPollfds()[0].fd;
@@ -334,15 +335,13 @@ namespace Net
 
 							recv(pfds[pfds.size() - 1].fd, buf, sizeof buf, 0);
 
-							OnConnect(funcPtr, newFd, buf);
+							OnConnect(connect, newFd, buf);
 						}
 					}
 					else 
 					{
 						// If not the serverListener, we're just a regular client
 						int recvBytes = recv(pfds[i].fd, buf, sizeof buf, 0);
-						buf[recvBytes - 1] = '\0';
-
 
 						SOCKET sender = pfds[i].fd;
 
@@ -360,7 +359,10 @@ namespace Net
 						}
 						else 
 						{
-							consolePrint(TEXT("%1!s!\n"), buf);
+							buf[recvBytes - 1] = '\0';
+							std::string treatedData = OnServerReceive(receive, buf, sender);
+
+							consolePrint(TEXT("%1!s!\n"), treatedData.c_str());
 
 							// We got some good data from a client
 							for (int j = 0; j < pfds.size(); j++) 
@@ -371,7 +373,7 @@ namespace Net
 								// Except the serverListener and ourselves
 								if (destination != serverListener && destination != sender) 
 								{
-									if (SOCKET_ERROR == send(destination, buf, recvBytes, 0)) 
+									if (SOCKET_ERROR == send(destination, treatedData.c_str(), (int)treatedData.size() + 1, 0))
 									{
 										reportWindowsError(TEXT("send"), WSAGetLastError());
 									}
@@ -395,6 +397,12 @@ namespace Net
 	void Socket::OnConnect(std::function<void(unsigned __int64&, char*, Socket&)> funcPtr, unsigned __int64  scktNbr, char* buf)
 	{
 		funcPtr(scktNbr, buf, *this);
+	}
+
+	std::string Socket::OnServerReceive(std::function<std::string(char*, unsigned __int64&)> funcPtr, 
+										 char* data, unsigned __int64& scktNbr)
+	{
+		return funcPtr(data, scktNbr);
 	}
 
 	void Socket::OnReceiveData(std::function<void(char*)> funcPtr)
