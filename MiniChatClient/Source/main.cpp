@@ -37,19 +37,30 @@ VOID KeyEventProc(KEY_EVENT_RECORD ker, Chat::Client& client)
         return;
     }
 
-    if (ker.wVirtualKeyCode != VK_RETURN && ker.wVirtualKeyCode != VK_ESCAPE)
+    if (VK_RETURN != ker.wVirtualKeyCode && VK_ESCAPE != ker.wVirtualKeyCode && VK_BACK != ker.wVirtualKeyCode && VK_DOWN != ker.wVirtualKeyCode)
     {
         charbuf[bufidx] = ker.uChar.AsciiChar;
         bufidx++;
         printf("%c", ker.uChar.AsciiChar);
     }
-    else if (ker.wVirtualKeyCode == VK_RETURN)
+    else if (VK_RETURN == ker.wVirtualKeyCode)
     {
         printf("%c[E", 27);
         charbuf[bufidx] = '\0';
         bufidx++;
         client.SendMsg((char*)charbuf, bufidx);
         bufidx = 0;
+    }
+    else if (VK_BACK == ker.wVirtualKeyCode)
+    {
+        printf("\b \b");
+        bufidx--;
+    }
+    else if (VK_DOWN == ker.wVirtualKeyCode)
+    {
+        printf("%c[2K%c[E", 27, 27);
+        //printf("%c[2K%c[1B", 27, 27);
+        printf(charbuf);
     }
 }
 

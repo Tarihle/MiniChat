@@ -4,6 +4,19 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+//#ifdef _UNICODE
+//#undef _UNICODE
+//#endif //!_UNICODE
+//
+//#ifdef UNICODE
+//#undef UNICODE
+//#endif //!UNICODE
+//
+//#if 1	/* 0 == ANSI && 1 == UNICODE */
+//#define _UNICODE
+//#define UNICODE
+//#endif
+
 namespace Chat
 {
 	class Client

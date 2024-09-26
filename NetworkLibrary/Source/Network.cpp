@@ -237,13 +237,11 @@ namespace Net
 
 	void Socket::Send(const char* buf, int len)
 	{
-		//consolePrint("%1!s!\n", buf);
 		send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len + 1, 0); /* +1 because we will force \0 on the last character */
 	}
 
 	void Socket::Send(const char* buf, int len, unsigned __int64 destination)
 	{
-		consolePrint("%1!s!\n", buf);
 		send(destination, buf, len + 1, 0); /* +1 because we will force \0 on the last character */
 	}
 
