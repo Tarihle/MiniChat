@@ -32,26 +32,22 @@ VOID ErrorExit(LPSTR lpszMessage)
 
 VOID KeyEventProc(KEY_EVENT_RECORD ker, Chat::Client& client)
 {
-    //printf("Key event: ");
-
     if (!ker.bKeyDown)
     {
         return;
     }
 
-    //printf("key pressed\n");
-
     if (ker.wVirtualKeyCode != VK_RETURN && ker.wVirtualKeyCode != VK_ESCAPE)
     {
         charbuf[bufidx] = ker.uChar.AsciiChar;
         bufidx++;
+        printf("%c", ker.uChar.AsciiChar);
     }
     else if (ker.wVirtualKeyCode == VK_RETURN)
     {
+        printf("%c[E", 27);
         charbuf[bufidx] = '\0';
         bufidx++;
-        //wprintf(wcharbuf);
-        //client.Send((char*)charbuf, bufidx);
         client.SendMsg((char*)charbuf, bufidx);
         bufidx = 0;
     }

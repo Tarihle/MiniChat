@@ -237,7 +237,7 @@ namespace Net
 
 	void Socket::Send(const char* buf, int len)
 	{
-		consolePrint("%1!s!\n", buf);
+		//consolePrint("%1!s!\n", buf);
 		send(((Network*)m_Network)->GetPollfds()[0].fd, buf, len + 1, 0); /* +1 because we will force \0 on the last character */
 	}
 
