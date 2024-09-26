@@ -67,7 +67,7 @@ namespace Chat
 	TSTR HandleData(TCHAR* data, unsigned __int64& socket)
 	{
 		TSTR msg = Usernames[socket];
-		msg += TEXT(" > ");
+		msg.append(TEXT(" > "));
 		msg += data;
 		return msg;
 	}

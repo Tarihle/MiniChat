@@ -386,7 +386,7 @@ namespace Net
 								// Except the serverListener and ourselves
 								if (destination != serverListener && destination != sender) 
 								{
-									if (SOCKET_ERROR == send(destination, (char*)treatedData.c_str(), (int)treatedData.size() + 1, 0))
+									if (SOCKET_ERROR == send(destination, (char*)treatedData.c_str(), (int)(treatedData.size() + 1) * sizeof(TCHAR), 0))
 									{
 										reportWindowsError(TEXT("send"), WSAGetLastError());
 									}

@@ -1,20 +1,6 @@
 #pragma once
-#ifdef _UNICODE
-#undef _UNICODE
-#endif //!_UNICODE
 
-#ifdef UNICODE
-#undef UNICODE
-#endif //!UNICODE
-
-#if 0	/* 0 == ANSI && 1 == UNICODE */
-#define _UNICODE
-#define UNICODE
-#endif
-
-#define WIN32_LEAN_AND_MEAN	/* No need for every windows header */
-#include <WinSock2.h>
-#include <tchar.h>
+#include "../pch.h"
 
 #ifdef UNICODE
 #include <io.h>
