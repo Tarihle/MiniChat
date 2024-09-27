@@ -14,14 +14,19 @@ int appMain()
     Chat::Client client;
 
     TSTR username;
+    TSTR IP;
 #ifdef UNICODE
     std::wcout << L"Choose a username: ";
     std::wcin >> username;
+    std::wcout << L"Enter IP address: ";
+    std::wcin >> IP;
 #else
     std::cout << "Choose a username: ";
     std::cin >> username;
+    std::cout << "Enter IP address: ";
+    std::cin >> IP;
 #endif
-    client.Connect((LPCTSTR)username.c_str(), (int)username.size());
+    client.Connect(IP, (LPCTSTR)username.c_str(), (int)username.size());
 
     INPUT_RECORD irInBuf[128];
     DWORD cNumRead, fdwMode;

@@ -130,6 +130,7 @@ namespace Net
 		struct addrinfo* list;
 		int status;
 		SOCKET newSocket;
+		char hostAddr[MAX_BUF_SIZE];
 
 		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
 		hints.ai_family = AF_INET6;    /* AF_INET or AF_INET6 to force version */
@@ -137,7 +138,10 @@ namespace Net
 		hints.ai_flags = AI_PASSIVE;
 		hints.ai_protocol = IPPROTO_TCP;
 
-		status = getaddrinfo(IPAddress, port, &hints, &list);
+		gethostname(hostAddr, MAX_BUF_SIZE);
+		IPAddress;
+
+		status = getaddrinfo(hostAddr, port, &hints, &list);
 		if (status != 0)    /* getaddrinfo return 0 on success */
 		{
 			reportWindowsError(TEXT("getaddrinfo"), WSAGetLastError());
@@ -256,6 +260,7 @@ namespace Net
 
 	void Socket::Send(LPCTSTR buf, int len)
 	{
+#ifdef UNICODE
 		TSTR bufCopy;
 		//wprintf(L"Before :\t");
 		//for (int idx = 0; idx < len * sizeof(TCHAR); ++idx)
@@ -271,6 +276,9 @@ namespace Net
 		//wprintf(L"\n");
 
 		send(((Network*)m_Network)->GetPollfds()[0].fd, (char*)bufCopy.c_str(), (len + 1) * sizeof(TCHAR), 0); /* +1 because we will force \0 on the last character */
+#else
+		send(((Network*)m_Network)->GetPollfds()[0].fd, (char*)buf, len + 1, 0); /* +1 because we will force \0 on the last character */
+#endif
 	}
 
 	void Socket::Send(LPCTSTR buf, int len, unsigned __int64 destination)
@@ -366,13 +374,16 @@ namespace Net
 								newFd);
 							consolePrint(TEXT("Numbers of sockets check: %1!d!\n"), (int)pfds.size());
 
+#ifdef UNICODE
 							int recvBytes = recv(pfds[pfds.size() - 1].fd, buf, MAX_BUF_SIZE, 0);
 
 							for (int idx = 0; idx < recvBytes; idx++)
 							{
 								((TCHAR*)buf)[idx] = ntohs(((TCHAR*)buf)[idx]);
 							}
+#endif
 
+							recv(pfds[pfds.size() - 1].fd, buf, MAX_BUF_SIZE, 0);
 							OnConnect(connect, newFd, (TCHAR*&)buf);
 						}
 					}
@@ -399,18 +410,12 @@ namespace Net
 						{
 							((TCHAR*)buf)[recvBytes/sizeof(TCHAR)] = TEXT('\0');
 
-							wprintf(L"Before :\t");
-							for (int idx = 0; idx < recvBytes; ++idx)
-								wprintf(L"%d ", ((char*)buf)[idx]);
-
+#ifdef UNICODE
 							for (int idx = 0; idx < recvBytes; idx++)
 							{
 								((TCHAR*)buf)[idx] = ntohs(((TCHAR*)buf)[idx]);
 							}
-							wprintf(L"\nAfter :\t\t");
-							for (int idx = 0; idx < recvBytes; ++idx)
-								wprintf(L"%d ", ((char*)buf)[idx]);
-							wprintf(L"\n");
+#endif
 
 							TSTR treatedData = OnServerReceive(receive, (TCHAR*)buf, sender);
 

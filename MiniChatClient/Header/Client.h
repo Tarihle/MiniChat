@@ -11,7 +11,7 @@ namespace Chat
 
 		//////////////////////////////////////////////////
 
-		void	Connect(LPCTSTR username, int len);
+		void	Connect(TSTR IP, LPCTSTR username, int len);
 		HANDLE	GetSocketHandle();
 		void	SetConsole(HANDLE& hConsole, DWORD& oldMode, DWORD& newMode);
 		void	InputConsole(HANDLE hConsole, PINPUT_RECORD inRec, DWORD& recRead, DWORD oldMode);

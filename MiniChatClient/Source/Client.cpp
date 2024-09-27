@@ -9,7 +9,7 @@ namespace Chat
 		m_Socket = new Net::Socket(m_ErrCode);
 	}
 
-	void Client::Connect(LPCTSTR username, int len)
+	void Client::Connect(TSTR IP, LPCTSTR username, int len)
 	{
 		if (nullptr == m_Socket)
 		{
@@ -18,11 +18,21 @@ namespace Chat
 
 		//m_Socket->NewSocketConnect("10.5.5.105", "27015", 1); /* Malo */
 		//m_Socket->NewSocketConnect("10.5.5.108", "8080", 1); /* VinKé */
-		m_Socket->NewSocketConnect("10.5.5.106", "6698", 1); /* Louis */
+		//m_Socket->NewSocketConnect("10.5.5.106", "6698", 1); /* Louis */
+
+#ifdef UNICODE
+		std::string IPstring;
+		for (int i = 0; i < IP.size(); i++)
+		{
+			IPstring.push_back((char)IP[i]);
+		}
+
+		m_Socket->NewSocketConnect(IPstring.c_str(), "6698", 1); /* Louis */
+#else
+		m_Socket->NewSocketConnect(IP.c_str(), "6698", 1); /* Louis */
+#endif
 
 		m_Socket->Send(username, len);
-
-		_tprintf(TEXT("Connecting to 10.5.5.106\n"));
 	}
 
 	HANDLE Client::GetSocketHandle()
