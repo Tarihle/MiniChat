@@ -128,6 +128,7 @@ namespace Net
 	{
 		struct addrinfo hints;
 		struct addrinfo* list;
+		struct addrinfo* host;
 		int status;
 		SOCKET newSocket;
 		char hostAddr[MAX_BUF_SIZE];
@@ -140,7 +141,7 @@ namespace Net
 
 		gethostname(hostAddr, MAX_BUF_SIZE);
 
-		status = getaddrinfo(hostAddr, port, &hints, &list);
+		status = getaddrinfo(NULL, port, &hints, &list);
 		if (status != 0)    /* getaddrinfo returns 0 on success */
 		{
 			reportWindowsError(TEXT("getaddrinfo"), WSAGetLastError());
@@ -148,7 +149,13 @@ namespace Net
 
 		if (optionalPrint)
 		{
-			PrintSocketAddr(list);
+			hints.ai_family = AF_UNSPEC;
+			status = getaddrinfo(hostAddr, port, &hints, &host);
+			if (status != 0)    /* getaddrinfo returns 0 on success */
+			{
+				reportWindowsError(TEXT("getaddrinfo"), WSAGetLastError());
+			}
+			PrintSocketAddr(host);
 		}
 
 		newSocket = socket(list->ai_family, list->ai_socktype, list->ai_protocol);
