@@ -16,11 +16,7 @@ namespace Chat
 		{
 			return;
 		}
-
-		//m_Socket->NewSocketConnect("10.5.5.105", "27015", 1); /* Malo */
-		//m_Socket->NewSocketConnect("10.5.5.108", "8080", 1); /* VinKé */
-		//m_Socket->NewSocketConnect("10.5.5.106", "6698", 1); /* Louis */
-
+		
 		bool validConnection = false;
 		TSTR username;
 		TSTR IP;
@@ -86,32 +82,28 @@ namespace Chat
 	void Client::InputConsole(HANDLE hConsole, PINPUT_RECORD inRec, DWORD& recRead, DWORD oldMode)
 	{
 		if (!ReadConsoleInput(
-			hConsole,	// input buffer handle
-			inRec,		// buffer to read into
-			128,        // size of read buffer
-			&recRead)) // number of records read
+			hConsole,		/* input buffer handle */
+			inRec,			/* buffer to read into */
+			MAX_BUF_SIZE,	/* size of read buffer */
+			&recRead))		/* number of records read */
 			ErrorExit(TEXT("ReadConsoleInput"), hConsole, oldMode);
 
-		// Dispatch the events to the appropriate handler.
+		/* Dispatch the events to the appropriate handler. */
 		for (DWORD i = 0; i < recRead; i++)
 		{
 			switch (inRec[i].EventType)
 			{
-			case KEY_EVENT: // keyboard input
+			case KEY_EVENT: /* keyboard input */
 				KeyEventProc(inRec[i].Event.KeyEvent);
 				break;
 
-			case MOUSE_EVENT: // mouse input
-				MouseEventProc(inRec[i].Event.MouseEvent);
-				break;
+			case MOUSE_EVENT: /* disregard mouse input */
 
-			case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing
-				ResizeEventProc(inRec[i].Event.WindowBufferSizeEvent);
-				break;
+			case WINDOW_BUFFER_SIZE_EVENT: /* disregard scrn buf. resizing */
 
-			case FOCUS_EVENT:  // disregard focus events
+			case FOCUS_EVENT:  /* disregard focus events */
 
-			case MENU_EVENT:   // disregard menu events
+			case MENU_EVENT:   /* disregard menu events */
 				break;
 
 			default:
@@ -128,7 +120,10 @@ namespace Chat
 			return;
 		}
 
-		if (VK_RETURN != ker.wVirtualKeyCode && VK_ESCAPE != ker.wVirtualKeyCode && VK_BACK != ker.wVirtualKeyCode && VK_DOWN != ker.wVirtualKeyCode)
+		if (VK_RETURN != ker.wVirtualKeyCode && 
+			VK_ESCAPE != ker.wVirtualKeyCode && 
+			VK_BACK != ker.wVirtualKeyCode && 
+			VK_DOWN != ker.wVirtualKeyCode)
 		{
 			m_CharBuf.push_back((TCHAR)ker.uChar.UnicodeChar);
 			_tprintf(TEXT("%c"), (TCHAR)ker.uChar.UnicodeChar);
@@ -147,57 +142,8 @@ namespace Chat
 		}
 	}
 
-	void Client::MouseEventProc(MOUSE_EVENT_RECORD mer)
-	{
-#ifndef MOUSE_HWHEELED
-#define MOUSE_HWHEELED 0x0008
-#endif
-		printf("Mouse event: ");
-
-		switch (mer.dwEventFlags)
-		{
-		case 0:
-
-			if (mer.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED)
-			{
-				printf("left button press \n");
-			}
-			else if (mer.dwButtonState == RIGHTMOST_BUTTON_PRESSED)
-			{
-				printf("right button press \n");
-			}
-			else
-			{
-				printf("button press\n");
-			}
-			break;
-		case DOUBLE_CLICK:
-			printf("double click\n");
-			break;
-		case MOUSE_HWHEELED:
-			printf("horizontal mouse wheel\n");
-			break;
-		case MOUSE_MOVED:
-			printf("mouse moved\n");
-			break;
-		case MOUSE_WHEELED:
-			printf("vertical mouse wheel\n");
-			break;
-		default:
-			printf("unknown\n");
-			break;
-		}
-	}
-
-	void Client::ResizeEventProc(WINDOW_BUFFER_SIZE_RECORD wbsr)
-	{
-		printf("Resize event\n");
-		printf("Console screen buffer is %d columns by %d rows.\n", wbsr.dwSize.X, wbsr.dwSize.Y);
-	}
-
 	void Client::ErrorExit(LPCTSTR lpszMessage, HANDLE hConsole, DWORD oldMode)
 	{
-		//fprintf(stderr, "%s\n", lpszMessage);
 		_tprintf(TEXT("%s\n"), lpszMessage);
 
 		// Restore input mode on exit.
@@ -214,18 +160,6 @@ namespace Chat
 		}
 
 		m_Socket->Send(msg, length);
-
-		//TSTR close = TEXT("/close\0");
-
-		//int idx = 0;
-		//while (msg[idx] != '\0' && close[idx] != '\0')
-		//{
-		//	m_ShouldClose = true;
-		//	if (msg[idx] != close[idx])
-		//		m_ShouldClose = false;
-
-		//	idx += sizeof(TCHAR);
-		//}
 	}
 
 	void Client::ReceiveMsg()
@@ -239,30 +173,20 @@ namespace Chat
 		_tprintf(TEXT("%c[E%s"), 27, m_CharBuf.c_str());
 	}
 
-	void Client::Close()
-	{
-		if (nullptr == m_Socket)
-		{
-			return;
-		}
-
-		m_Socket->Close();
-	}
-
 	void Client::Run(HANDLE& hConsole, DWORD& oldMode)
 	{
-		INPUT_RECORD irInBuf[128];
+		INPUT_RECORD irInBuf[MAX_BUF_SIZE];
 		DWORD cNumRead, fdwMode;
 
 		SetConsole(hConsole, oldMode, fdwMode);
 		HANDLE eventHandles[] = { hConsole, GetSocketHandle() };
 
-		// Loop to read and handle the next 100 input events.
+		/* Loop to read and handle the next 100 input events. */
 		while (!m_ShouldClose)
 		{
 			DWORD object = WaitForMultipleObjects(ARRAYSIZE(eventHandles), eventHandles, false, INFINITE);
 
-			// Wait for the events.
+			/* Wait for the events. */
 			switch (object)
 			{
 			case WAIT_OBJECT_0:
@@ -276,21 +200,19 @@ namespace Chat
 			}
 		}
 
-		// Restore input mode on exit.
-
+		/* Restore input mode on exit. */
 		SetConsoleMode(hConsole, oldMode);
 	}
 
 	Client::~Client()
 	{
-		this->Close();
-
 		delete m_ErrCode;
 		delete m_Socket;
 	}
 
 	bool HandleMsg(TCHAR* msg)
 	{
+		/* nullptr means the client should close */
 		if (nullptr == msg)
 		{
 			return true;
