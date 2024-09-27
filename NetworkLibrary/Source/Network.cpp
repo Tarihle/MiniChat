@@ -124,7 +124,7 @@ namespace Net
 		((Network*)m_Network)->AddPollfd(newSocket);
 	}
 
-	void Socket::NewSocketBind(const char* IPAddress, const char* port, short optionalPrint)
+	void Socket::NewSocketBind(const char* port, short optionalPrint)
 	{
 		struct addrinfo hints;
 		struct addrinfo* list;
@@ -132,20 +132,18 @@ namespace Net
 		SOCKET newSocket;
 		char hostAddr[MAX_BUF_SIZE];
 
-		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
-		hints.ai_family = AF_INET6;    /* AF_INET or AF_INET6 to force version */
+		memset(&hints, 0, sizeof hints);	/* Fill with 0s */
+		hints.ai_family = AF_INET6;
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_PASSIVE;
 		hints.ai_protocol = IPPROTO_TCP;
 
 		gethostname(hostAddr, MAX_BUF_SIZE);
-		IPAddress;
 
 		status = getaddrinfo(hostAddr, port, &hints, &list);
-		if (status != 0)    /* getaddrinfo return 0 on success */
+		if (status != 0)    /* getaddrinfo returns 0 on success */
 		{
 			reportWindowsError(TEXT("getaddrinfo"), WSAGetLastError());
-			//return 2;
 		}
 
 		if (optionalPrint)
@@ -175,7 +173,7 @@ namespace Net
 		freeaddrinfo(list); /* free the linked list */
 	}
 
-	void Socket::NewSocketConnect(const char* IPAddress, const char* port, short optionalPrint)
+	bool Socket::NewSocketConnect(const char* IPAddress, const char* port, short optionalPrint)
 	{
 		struct addrinfo hints;
 		struct addrinfo* list;
@@ -192,7 +190,7 @@ namespace Net
 		if (status != 0)    /* getaddrinfo return 0 on success */
 		{
 			reportWindowsError(TEXT("getaddrinfo"), WSAGetLastError());
-			//return 2;
+			return false;
 		}
 
 		if (optionalPrint)
@@ -204,6 +202,7 @@ namespace Net
 		if (INVALID_SOCKET == newSocket)
 		{
 			reportWindowsError(TEXT("socket"), WSAGetLastError());
+			return false;
 		}
 
 		int idx = ((Network*)m_Network)->AddPollfd(newSocket);
@@ -213,12 +212,14 @@ namespace Net
 		if (SOCKET_ERROR == status)
 		{
 			reportWindowsError(TEXT("connect"), WSAGetLastError());
+			return false;
 		}
 
 		m_Handle = WSACreateEvent();
 		WSAEventSelect(((Network*)m_Network)->GetPollfds()[idx].fd, m_Handle, FD_READ | FD_CLOSE);
 
 		freeaddrinfo(list); /* free the linked list */
+		return true;
 	}
 
 	void* Socket::GetAddr(sockaddr* SocketAddress)

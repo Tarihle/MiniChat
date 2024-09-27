@@ -18,8 +18,8 @@ namespace Net
 		//////////////////////////////////////////////////
 
 		void NewSocket(const char* IPAddress, const char* port, short optionalPrint = 0);
-		void NewSocketBind(const char* IPAddress, const char* port, short optionalPrint = 0);
-		void NewSocketConnect(const char* IPAddress, const char* port, short optionalPrint = 0);
+		void NewSocketBind(const char* port, short optionalPrint = 0);
+		bool NewSocketConnect(const char* IPAddress, const char* port, short optionalPrint = 0);
 		void* GetAddr(struct sockaddr* SocketAddress);
 		void Listening();
 		void Accepting();
