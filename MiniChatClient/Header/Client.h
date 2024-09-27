@@ -38,6 +38,6 @@ namespace Chat
 		TSTR	m_CharBuf;
 	};
 
-	void	HandleMsg(TCHAR* msg);
+	bool	HandleMsg(TCHAR* msg);
 
 }

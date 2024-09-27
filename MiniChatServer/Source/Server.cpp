@@ -15,7 +15,8 @@ namespace Chat
 
 	void Server::CreateServer()
 	{
-		m_Listener->NewSocketBind("10.5.5.106", "6698", 1);
+		m_Listener->NewSocketBind(NULL, "6698", 1);
+		//m_Listener->NewSocketBind("10.5.5.106", "6698", 1);
 		m_Listener->Listening();
 	}
 

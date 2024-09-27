@@ -185,17 +185,17 @@ namespace Chat
 
 		m_Socket->Send(msg, length);
 
-		TSTR close = TEXT("/close\0");
+		//TSTR close = TEXT("/close\0");
 
-		int idx = 0;
-		while (msg[idx] != '\0' && close[idx] != '\0')
-		{
-			m_ShouldClose = true;
-			if (msg[idx] != close[idx])
-				m_ShouldClose = false;
+		//int idx = 0;
+		//while (msg[idx] != '\0' && close[idx] != '\0')
+		//{
+		//	m_ShouldClose = true;
+		//	if (msg[idx] != close[idx])
+		//		m_ShouldClose = false;
 
-			idx += sizeof(TCHAR);
-		}
+		//	idx += sizeof(TCHAR);
+		//}
 	}
 
 	void Client::ReceiveMsg()
@@ -205,7 +205,7 @@ namespace Chat
 			return;
 		}
 
-		m_Socket->OnReceiveData(HandleMsg);
+		m_ShouldClose = m_Socket->OnReceiveData(HandleMsg);
 		_tprintf(TEXT("%c[E%s"), 27, m_CharBuf.c_str());
 	}
 
@@ -227,9 +227,16 @@ namespace Chat
 		delete m_Socket;
 	}
 
-	void HandleMsg(TCHAR* msg)
+	bool HandleMsg(TCHAR* msg)
 	{
+		if (nullptr == msg)
+		{
+			return true;
+		}
+
 		_tprintf(TEXT("%c[2K"), 27);
 		_tprintf(TEXT("%s"), msg);
+
+		return false;
 	}
 }

@@ -132,7 +132,7 @@ namespace Net
 		SOCKET newSocket;
 
 		memset(&hints, 0, sizeof hints);    /* Fill with 0s */
-		hints.ai_family = AF_UNSPEC;    /* AF_INET or AF_INET6 to force version */
+		hints.ai_family = AF_INET6;    /* AF_INET or AF_INET6 to force version */
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_PASSIVE;
 		hints.ai_protocol = IPPROTO_TCP;
@@ -154,6 +154,9 @@ namespace Net
 		{
 			reportWindowsError(TEXT("socket"), WSAGetLastError());
 		}
+
+		int disable = 0;
+		status = setsockopt(newSocket, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&disable, sizeof(disable));
 
 		int idx = ((Network*)m_Network)->AddPollfd(newSocket);
 
@@ -209,7 +212,7 @@ namespace Net
 		}
 
 		m_Handle = WSACreateEvent();
-		WSAEventSelect(((Network*)m_Network)->GetPollfds()[idx].fd, m_Handle, FD_READ);
+		WSAEventSelect(((Network*)m_Network)->GetPollfds()[idx].fd, m_Handle, FD_READ | FD_CLOSE);
 
 		freeaddrinfo(list); /* free the linked list */
 	}
@@ -463,24 +466,32 @@ namespace Net
 		return funcPtr(data, scktNbr);
 	}
 
-	void Socket::OnReceiveData(std::function<void(TCHAR*)> funcPtr)
+	bool Socket::OnReceiveData(std::function<bool(TCHAR*)> funcPtr)
 	{
+		bool out = false;
 		std::vector<pollfd>& pfds = ((Network*)m_Network)->GetPollfds();
-		char buf[256];    // Buffer for client data
+		char buf[MAX_BUF_SIZE];    // Buffer for client data
 
 		int recvBytes = recv(pfds[0].fd, buf, sizeof buf, 0);
-		buf[recvBytes - 1] = '\0';
 
 		if (recvBytes < 0)
 		{
 			reportWindowsError(TEXT("recv"), WSAGetLastError());
+			return true;
+		}
+		else if (0 == recvBytes)
+		{
+			out = funcPtr(nullptr);
 		}
 		else
 		{
-			funcPtr((TCHAR*)buf);
+			buf[recvBytes - 1] = '\0';
+			out = funcPtr((TCHAR*)buf);
 		}
 
 		WSAResetEvent(m_Handle);
+
+		return out;
 	}
 
 	HANDLE Socket::GetHandle()

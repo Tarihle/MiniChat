@@ -34,7 +34,7 @@ namespace Net
 		void OnConnect(std::function<void(unsigned __int64&, TCHAR*&, Socket&)> funcPtr, unsigned __int64 scktNbr, TCHAR*& buf);
 		TSTR OnServerReceive(std::function<TSTR(TCHAR*, unsigned __int64&)> funcPtr, 
 									 TCHAR* data, unsigned __int64& scktNbr);
-		void OnReceiveData(std::function<void(TCHAR*)> funcPtr);
+		bool OnReceiveData(std::function<bool(TCHAR*)> funcPtr);
 		HANDLE GetHandle();
 		 
 		//////////////////////////////////////////////////
