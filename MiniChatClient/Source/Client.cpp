@@ -1,4 +1,5 @@
 #include "Client.h"
+#include <iostream> /* cin */
 
 namespace Chat
 {
@@ -9,7 +10,7 @@ namespace Chat
 		m_Socket = new Net::Socket(m_ErrCode);
 	}
 
-	void Client::Connect(TSTR IP, LPCTSTR username, int len)
+	void Client::Connect()
 	{
 		if (nullptr == m_Socket)
 		{
@@ -20,19 +21,38 @@ namespace Chat
 		//m_Socket->NewSocketConnect("10.5.5.108", "8080", 1); /* VinKé */
 		//m_Socket->NewSocketConnect("10.5.5.106", "6698", 1); /* Louis */
 
-#ifdef UNICODE
-		std::string IPstring;
-		for (int i = 0; i < IP.size(); i++)
-		{
-			IPstring.push_back((char)IP[i]);
-		}
+		bool validConnection = false;
+		TSTR username;
+		TSTR IP;
 
-		m_Socket->NewSocketConnect(IPstring.c_str(), "6698", 1); /* Louis */
+		while (!validConnection)
+		{
+#ifdef UNICODE
+			std::wcout << L"Choose a username: ";
+			std::wcin >> username;
+			std::wcout << L"Enter IP address: ";
+			std::wcin >> IP;
 #else
-		m_Socket->NewSocketConnect(IP.c_str(), "6698", 1); /* Louis */
+			std::cout << "Choose a username: ";
+			std::cin >> username;
+			std::cout << "Enter IP address: ";
+			std::cin >> IP;
 #endif
 
-		m_Socket->Send(username, len);
+#ifdef UNICODE
+			std::string IPstring;
+			for (int i = 0; i < IP.size(); i++)
+			{
+				IPstring.push_back((char)IP[i]);
+			}
+
+			validConnection = m_Socket->NewSocketConnect(IPstring.c_str(), "6698", 1); /* Louis */
+#else
+			validConnection = m_Socket->NewSocketConnect(IP.c_str(), "6698", 1); /* Louis */
+#endif
+			}
+
+		m_Socket->Send(username.c_str(), (int)username.size());
 	}
 
 	HANDLE Client::GetSocketHandle()

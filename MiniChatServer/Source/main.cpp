@@ -17,6 +17,7 @@ int appMain()
 
 int _tmain()
 {
+#ifndef NDEBUG
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
     _CrtMemState start;
@@ -44,4 +45,7 @@ int _tmain()
     }
 
     return returnValue;
+#else
+    return appMain();
+#endif
 }

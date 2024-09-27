@@ -1,6 +1,5 @@
 ///Client
 #include "Client.h"
-#include <iostream> /* cin */
 
 int appMain()
 {
@@ -9,21 +8,7 @@ int appMain()
 
     Chat::Client client;
 
-    TSTR username;
-    TSTR IP;
-#ifdef UNICODE
-    std::wcout << L"Choose a username: ";
-    std::wcin >> username;
-    std::wcout << L"Enter IP address: ";
-    std::wcin >> IP;
-#else
-    std::cout << "Choose a username: ";
-    std::cin >> username;
-    std::cout << "Enter IP address: ";
-    std::cin >> IP;
-#endif
-
-    client.Connect(IP, (LPCTSTR)username.c_str(), (int)username.size());
+    client.Connect();
     client.Run(hStdin, fdwSaveOldMode);
 
     return 0;
@@ -34,29 +19,35 @@ int appMain()
 
 int _tmain()
 {
-	_CrtMemState start;
-	_CrtMemCheckpoint(&start);
+#ifndef NDEBUG
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	int returnValue = appMain();
+    _CrtMemState start;
+    _CrtMemCheckpoint(&start);
 
-	_CrtMemState end;
-	_CrtMemCheckpoint(&end);
+    int returnValue = appMain();
 
-	_CrtMemState difference;
-	if (_CrtMemDifference(&difference, &start, &end))
-	{
-		OutputDebugString(TEXT("---------- _CrtMemDumpStatistics ----------\n\n"));
-		_CrtMemDumpStatistics(&difference);
-		OutputDebugString(TEXT("\n---------- _CrtMemDumpAllObjectsSince ----------\n\n"));
-		_CrtMemDumpAllObjectsSince(&end);
-		OutputDebugString(TEXT("\n---------- _CrtMemDumpMemoryLeaks ----------\n\n"));
-		_CrtDumpMemoryLeaks();
+    _CrtMemState end;
+    _CrtMemCheckpoint(&end);
 
-		if (!returnValue)
-		{
-			return -1;
-		}
-	}
+    _CrtMemState difference;
+    if (_CrtMemDifference(&difference, &start, &end))
+    {
+        OutputDebugString(TEXT("---------- _CrtMemDumpStatistics ----------\n\n"));
+        _CrtMemDumpStatistics(&difference);
+        OutputDebugString(TEXT("\n---------- _CrtMemDumpAllObjectsSince ----------\n\n"));
+        _CrtMemDumpAllObjectsSince(&end);
+        OutputDebugString(TEXT("\n---------- _CrtMemDumpMemoryLeaks ----------\n\n"));
+        _CrtDumpMemoryLeaks();
 
-	return returnValue;
+        if (!returnValue)
+        {
+            return -1;
+        }
+    }
+
+    return returnValue;
+#else
+    return appMain();
+#endif
 }
