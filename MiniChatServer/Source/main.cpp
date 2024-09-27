@@ -1,38 +1,47 @@
 ///Server
 #include "Server.h"
 
-int main()
+int appMain()
 {
-    //short* error = new short(-1);
-    //Net::Socket server(error);
-
-    //server.NewSocketBind("10.5.5.106", "6698", 1); /* IANA says port 6698 is unassigned */
-
-    //server.Listening();
-    ////server.Accepting();
-    //server.PollLoop();
     Chat::Server server;
 
     server.CreateServer();
 
     server.Run();
 
-    //HANDLE eventHandles[2] = { server.GetListenerHandle(), server.GetReceiverHandle() };
-
-    //while (true)
-    //{
-    //    DWORD eventSocket = WaitForMultipleObjects(2, eventHandles, false, INFINITE);
-
-    //    switch (eventSocket)
-    //    {
-    //    case WAIT_OBJECT_0:
-    //        break;
-    //    case WAIT_OBJECT_0 + 1:
-    //        break;
-    //    default:
-    //        break;
-    //    }
-    //}
-
     return 0;
+}
+
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+
+int _tmain()
+{
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
+    _CrtMemState start;
+    _CrtMemCheckpoint(&start);
+
+    int returnValue = appMain();
+
+    _CrtMemState end;
+    _CrtMemCheckpoint(&end);
+
+    _CrtMemState difference;
+    if (_CrtMemDifference(&difference, &start, &end))
+    {
+        OutputDebugString(TEXT("---------- _CrtMemDumpStatistics ----------\n\n"));
+        _CrtMemDumpStatistics(&difference);
+        OutputDebugString(TEXT("\n---------- _CrtMemDumpAllObjectsSince ----------\n\n"));
+        _CrtMemDumpAllObjectsSince(&end);
+        OutputDebugString(TEXT("\n---------- _CrtMemDumpMemoryLeaks ----------\n\n"));
+        _CrtDumpMemoryLeaks();
+
+        if (!returnValue)
+        {
+            return -1;
+        }
+    }
+
+    return returnValue;
 }

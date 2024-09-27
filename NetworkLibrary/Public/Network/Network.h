@@ -28,10 +28,10 @@ namespace Net
 		void Send(LPCTSTR buf, int len, unsigned __int64 destination);
 		void SendAll(LPCTSTR buf, int len);
 		void SendAll(LPCTSTR buf, int len, unsigned __int64 unwantedDestination);
-		void PollLoop(std::function<void(unsigned __int64&, TCHAR*, Socket&)> connect, 
+		void PollLoop(std::function<void(unsigned __int64&, TCHAR*&, Socket&)> connect, 
 					  std::function<TSTR(TCHAR*, unsigned __int64&)> receive,
 					  std::function<void(unsigned __int64)> disconnect);
-		void OnConnect(std::function<void(unsigned __int64&, TCHAR*, Socket&)> funcPtr, unsigned __int64 scktNbr, TCHAR* buf);
+		void OnConnect(std::function<void(unsigned __int64&, TCHAR*&, Socket&)> funcPtr, unsigned __int64 scktNbr, TCHAR*& buf);
 		TSTR OnServerReceive(std::function<TSTR(TCHAR*, unsigned __int64&)> funcPtr, 
 									 TCHAR* data, unsigned __int64& scktNbr);
 		void OnReceiveData(std::function<void(TCHAR*)> funcPtr);

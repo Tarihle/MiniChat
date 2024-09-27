@@ -69,6 +69,8 @@ namespace Net
 
 	Network::~Network()
 	{
+		m_Pollfds.clear();
+
 		///* WSA Cleanup */
 		int result = WSACleanup();
 		if (SOCKET_ERROR == result)
@@ -297,7 +299,7 @@ namespace Net
 		}
 	}
 
-	void Socket::PollLoop(std::function<void(unsigned __int64&, TCHAR*, Socket&)> connect, 
+	void Socket::PollLoop(std::function<void(unsigned __int64&, TCHAR*&, Socket&)> connect, 
 						  std::function<TSTR(TCHAR*, unsigned __int64&)> receive,
 						  std::function<void(unsigned __int64)> disconnect)
 	{
@@ -305,13 +307,14 @@ namespace Net
 		SOCKET serverListener = ((Network*)m_Network)->GetPollfds()[0].fd;
 
 		struct sockaddr_storage remoteAddr; // Client address
-		char remoteIP[INET6_ADDRSTRLEN];
+		TCHAR remoteIP[INET6_ADDRSTRLEN];
 
 		socklen_t addrLength;
 		SOCKET newFd;
-		char buf[256];    // Buffer for client data
+		char* buf = new char[MAX_BUF_SIZE];    // Buffer for client data
+		bool exitLoop = false;
 
-		for (;;) 
+		while (!exitLoop)
 		{
 			int poll_count = WSAPoll(&pfds[0], (ULONG)pfds.size(), -1);
 
@@ -342,19 +345,21 @@ namespace Net
 							((Network*)m_Network)->AddPollfd(newFd);
 
 							consolePrint(TEXT("pollserver: new connection from %1!s! on socket %2!llu!\n"),
-								inet_ntop(remoteAddr.ss_family, GetAddr((struct sockaddr*)&remoteAddr), remoteIP, INET6_ADDRSTRLEN), 
+								InetNtop(remoteAddr.ss_family, GetAddr((struct sockaddr*)&remoteAddr), remoteIP, INET6_ADDRSTRLEN), 
 								newFd);
 							consolePrint(TEXT("Numbers of sockets check: %1!d!\n"), (int)pfds.size());
 
-							recv(pfds[pfds.size() - 1].fd, buf, sizeof buf, 0);
+							recv(pfds[pfds.size() - 1].fd, buf, MAX_BUF_SIZE, 0);
 
-							OnConnect(connect, newFd, (TCHAR*)buf);
+							//OnConnect(connect, newFd, (TCHAR*)buf);
+							OnConnect(connect, newFd, (TCHAR*&)buf);
 						}
 					}
 					else 
 					{
 						// If not the serverListener, we're just a regular client
-						int recvBytes = recv(pfds[i].fd, buf, sizeof buf, 0);
+						int recvBytes = recv(pfds[i].fd, buf, MAX_BUF_SIZE, 0);
+						//int recvBytes = recv(pfds[i].fd, buf, sizeof buf, 0);
 
 						SOCKET sender = pfds[i].fd;
 
@@ -372,8 +377,14 @@ namespace Net
 						}
 						else 
 						{
-							buf[recvBytes - 1] = '\0';
+							((TCHAR*)buf)[recvBytes/sizeof(TCHAR)] = TEXT('\0');
 							TSTR treatedData = OnServerReceive(receive, (TCHAR*)buf, sender);
+
+							if (treatedData.size() == 0)
+							{
+								exitLoop = true;
+								break;
+							}
 
 							consolePrint(TEXT("%1!s!\n"), treatedData.c_str());
 
@@ -406,9 +417,11 @@ namespace Net
 				}
 			} // END looping through file descriptors
 		} // END for(;;)--and you thought it would never end!
+
+		delete[] buf;
 	}
 
-	void Socket::OnConnect(std::function<void(unsigned __int64&, TCHAR*, Socket&)> funcPtr, unsigned __int64  scktNbr, TCHAR* buf)
+	void Socket::OnConnect(std::function<void(unsigned __int64&, TCHAR*&, Socket&)> funcPtr, unsigned __int64  scktNbr, TCHAR*& buf)
 	{
 		funcPtr(scktNbr, buf, *this);
 	}
@@ -446,7 +459,8 @@ namespace Net
 
 	Socket::~Socket()
 	{
-
+		short* err;
+		delete Net::Network::GetInstance(err);
 	}
 
 	void Socket::PrintSocketAddr(addrinfo* list)

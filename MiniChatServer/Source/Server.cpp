@@ -4,7 +4,11 @@ namespace Chat
 {
 	Server::Server()
 	{
-		m_ErrCode = new short(-1);
+		//m_ErrCode = new short(-1);
+
+		//m_Listener = new Net::Socket(m_ErrCode);
+		m_ErrCode = new short;
+		*m_ErrCode = -1;
 
 		m_Listener = new Net::Socket(m_ErrCode);
 	}
@@ -34,9 +38,11 @@ namespace Chat
 	{
 		delete m_Listener;
 		delete m_ErrCode;
+
+		Usernames.clear();
 	}
 
-	void HandleConnection(unsigned __int64& socket, TCHAR* username, Net::Socket& server)
+	void HandleConnection(unsigned __int64& socket, TCHAR*& username, Net::Socket& server)
 	{
 		TSTR Welcome = TEXT("Hello ");
 		Welcome += username;
@@ -66,6 +72,22 @@ namespace Chat
 
 	TSTR HandleData(TCHAR* data, unsigned __int64& socket)
 	{
+		bool serverClose = false;
+		TSTR close = TEXT("/close\0");
+
+		int idx = 0;
+		while (data[idx] != '\0' && close[idx] != '\0')
+		{
+			serverClose = true;
+			if (data[idx] != close[idx])
+				serverClose = false;
+
+			idx += sizeof(TCHAR);
+		}
+
+		if (serverClose)
+			return TSTR();
+
 		TSTR msg = Usernames[socket];
 		msg.append(TEXT(" > "));
 		msg += data;

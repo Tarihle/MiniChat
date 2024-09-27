@@ -93,7 +93,7 @@ namespace Chat
 	
 	void Client::KeyEventProc(KEY_EVENT_RECORD ker)
 	{
-		if (!ker.bKeyDown)
+		if (!ker.bKeyDown || VK_SHIFT == ker.wVirtualKeyCode)
 		{
 			return;
 		}
@@ -114,11 +114,6 @@ namespace Chat
 			_tprintf(TEXT("\b \b"));
 			if (!m_CharBuf.empty())
 				m_CharBuf.pop_back();
-		}
-		else if (VK_DOWN == ker.wVirtualKeyCode)
-		{
-			_tprintf(TEXT("%c[2K%c[E"), 27, 27);
-			_tprintf(TEXT("%s"), m_CharBuf.c_str());
 		}
 	}
 
@@ -189,6 +184,18 @@ namespace Chat
 		}
 
 		m_Socket->Send(msg, length);
+
+		TSTR close = TEXT("/close\0");
+
+		int idx = 0;
+		while (msg[idx] != '\0' && close[idx] != '\0')
+		{
+			m_ShouldClose = true;
+			if (msg[idx] != close[idx])
+				m_ShouldClose = false;
+
+			idx += sizeof(TCHAR);
+		}
 	}
 
 	void Client::ReceiveMsg()

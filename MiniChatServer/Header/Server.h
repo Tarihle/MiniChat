@@ -31,7 +31,7 @@ namespace Chat
 		short*			m_ErrCode = nullptr;
 	};
 
-	void HandleConnection(unsigned __int64& socket, TCHAR* username, Net::Socket& server);
+	void HandleConnection(unsigned __int64& socket, TCHAR*& username, Net::Socket& server);
 	TSTR HandleData(TCHAR* data, unsigned __int64& socket);
 	void HandleDisconnect(unsigned __int64 socket);
 

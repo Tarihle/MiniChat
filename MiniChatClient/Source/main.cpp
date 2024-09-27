@@ -6,7 +6,7 @@
 
 ////////////////////////////////////////////////////////
 
-int main()
+int appMain()
 {
     HANDLE hStdin;
     DWORD fdwSaveOldMode;
@@ -32,7 +32,7 @@ int main()
 
     // Loop to read and handle the next 100 input events.
 
-    while (true)
+    while (!client.m_ShouldClose)
     {
         DWORD object = WaitForMultipleObjects(ARRAYSIZE(eventHandles), eventHandles, false, INFINITE);
 
@@ -55,4 +55,36 @@ int main()
     SetConsoleMode(hStdin, fdwSaveOldMode);
 
     return 0;
+}
+
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+
+int _tmain()
+{
+	_CrtMemState start;
+	_CrtMemCheckpoint(&start);
+
+	int returnValue = appMain();
+
+	_CrtMemState end;
+	_CrtMemCheckpoint(&end);
+
+	_CrtMemState difference;
+	if (_CrtMemDifference(&difference, &start, &end))
+	{
+		OutputDebugString(TEXT("---------- _CrtMemDumpStatistics ----------\n\n"));
+		_CrtMemDumpStatistics(&difference);
+		OutputDebugString(TEXT("\n---------- _CrtMemDumpAllObjectsSince ----------\n\n"));
+		_CrtMemDumpAllObjectsSince(&end);
+		OutputDebugString(TEXT("\n---------- _CrtMemDumpMemoryLeaks ----------\n\n"));
+		_CrtDumpMemoryLeaks();
+
+		if (!returnValue)
+		{
+			return -1;
+		}
+	}
+
+	return returnValue;
 }

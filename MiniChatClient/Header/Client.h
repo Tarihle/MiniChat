@@ -30,6 +30,7 @@ namespace Chat
 		//////////////////////////////////////////////////
 		~Client();
 
+		bool	m_ShouldClose = false;
 	private:
 		Net::Socket*	m_Socket = nullptr;
 		short*			m_ErrCode = nullptr;
