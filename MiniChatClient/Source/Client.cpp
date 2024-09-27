@@ -229,6 +229,38 @@ namespace Chat
 		m_Socket->Close();
 	}
 
+	void Client::Run(HANDLE& hConsole, DWORD& oldMode)
+	{
+		INPUT_RECORD irInBuf[128];
+		DWORD cNumRead, fdwMode;
+
+		SetConsole(hConsole, oldMode, fdwMode);
+		HANDLE eventHandles[] = { hConsole, GetSocketHandle() };
+
+		// Loop to read and handle the next 100 input events.
+		while (!m_ShouldClose)
+		{
+			DWORD object = WaitForMultipleObjects(ARRAYSIZE(eventHandles), eventHandles, false, INFINITE);
+
+			// Wait for the events.
+			switch (object)
+			{
+			case WAIT_OBJECT_0:
+				InputConsole(hConsole, irInBuf, cNumRead, oldMode);
+				break;
+			case WAIT_OBJECT_0 + 1:
+				ReceiveMsg();
+				break;
+			default:
+				break;
+			}
+		}
+
+		// Restore input mode on exit.
+
+		SetConsoleMode(hConsole, oldMode);
+	}
+
 	Client::~Client()
 	{
 		this->Close();

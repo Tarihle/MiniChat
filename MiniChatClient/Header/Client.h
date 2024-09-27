@@ -22,6 +22,7 @@ namespace Chat
 		void	SendMsg(LPCTSTR msg, int length);
 		void	ReceiveMsg();
 		void	Close();
+		void	Run(HANDLE& hConsole, DWORD& oldMode);
 		
 		//////////////////////////////////////////////////
 
