@@ -159,7 +159,25 @@ namespace Chat
 			return;
 		}
 
-		m_Socket->Send(msg, length);
+		TSTR quit = TEXT("/quit\0");
+
+		int idx = 0;
+		while (msg[idx] != '\0' && quit[idx] != '\0')
+		{
+			m_ShouldClose = true;
+			if (msg[idx] != quit[idx])
+			{
+				m_ShouldClose = false;
+				break;
+			}
+
+			idx += sizeof(TCHAR);
+		}
+
+		if (!m_ShouldClose)
+		{
+			m_Socket->Send(msg, length);
+		}
 	}
 
 	void Client::ReceiveMsg()
