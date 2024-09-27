@@ -253,7 +253,21 @@ namespace Net
 
 	void Socket::Send(LPCTSTR buf, int len)
 	{
-		send(((Network*)m_Network)->GetPollfds()[0].fd, (char*)buf, (len + 1) * sizeof(TCHAR), 0); /* +1 because we will force \0 on the last character */
+		TSTR bufCopy;
+		//wprintf(L"Before :\t");
+		//for (int idx = 0; idx < len * sizeof(TCHAR); ++idx)
+		//	wprintf(L"%d ", ((char*)buf)[idx]);
+
+		for (int idx = 0; idx < len * sizeof(TCHAR); idx++)
+		{
+			bufCopy.push_back(htons(((TCHAR*)buf)[idx]));
+		}
+		//wprintf(L"\nAfter :\t\t");
+		//for (int idx = 0; idx < len * sizeof(TCHAR); ++idx)
+		//	wprintf(L"%d ", ((char*)bufCopy.c_str())[idx]);
+		//wprintf(L"\n");
+
+		send(((Network*)m_Network)->GetPollfds()[0].fd, (char*)bufCopy.c_str(), (len + 1) * sizeof(TCHAR), 0); /* +1 because we will force \0 on the last character */
 	}
 
 	void Socket::Send(LPCTSTR buf, int len, unsigned __int64 destination)
@@ -349,9 +363,13 @@ namespace Net
 								newFd);
 							consolePrint(TEXT("Numbers of sockets check: %1!d!\n"), (int)pfds.size());
 
-							recv(pfds[pfds.size() - 1].fd, buf, MAX_BUF_SIZE, 0);
+							int recvBytes = recv(pfds[pfds.size() - 1].fd, buf, MAX_BUF_SIZE, 0);
 
-							//OnConnect(connect, newFd, (TCHAR*)buf);
+							for (int idx = 0; idx < recvBytes; idx++)
+							{
+								((TCHAR*)buf)[idx] = ntohs(((TCHAR*)buf)[idx]);
+							}
+
 							OnConnect(connect, newFd, (TCHAR*&)buf);
 						}
 					}
@@ -359,7 +377,6 @@ namespace Net
 					{
 						// If not the serverListener, we're just a regular client
 						int recvBytes = recv(pfds[i].fd, buf, MAX_BUF_SIZE, 0);
-						//int recvBytes = recv(pfds[i].fd, buf, sizeof buf, 0);
 
 						SOCKET sender = pfds[i].fd;
 
@@ -378,6 +395,20 @@ namespace Net
 						else 
 						{
 							((TCHAR*)buf)[recvBytes/sizeof(TCHAR)] = TEXT('\0');
+
+							wprintf(L"Before :\t");
+							for (int idx = 0; idx < recvBytes; ++idx)
+								wprintf(L"%d ", ((char*)buf)[idx]);
+
+							for (int idx = 0; idx < recvBytes; idx++)
+							{
+								((TCHAR*)buf)[idx] = ntohs(((TCHAR*)buf)[idx]);
+							}
+							wprintf(L"\nAfter :\t\t");
+							for (int idx = 0; idx < recvBytes; ++idx)
+								wprintf(L"%d ", ((char*)buf)[idx]);
+							wprintf(L"\n");
+
 							TSTR treatedData = OnServerReceive(receive, (TCHAR*)buf, sender);
 
 							if (treatedData.size() == 0)
